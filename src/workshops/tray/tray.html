@@ -3,6 +3,13 @@
         <i class="paperbits-icon paperbits-mirror-2"></i>
     </a>
 </div>
+
+<div class="toolbox-btn">
+    <a href="#" data-bind="balloon: { component: 'locale-selector', position: 'top' }" title="Locale selection" aria-label="Locale selection">
+        <i class="paperbits-icon paperbits-world"></i>
+    </a>
+</div>
+
 <!-- ko foreach: { data: buttons, as: 'button' } -->
 <div class="toolbox-btn">
     <button class="toolbox-btn" data-bind="attr: { title: button.title, 'aria-label': button.title }, click: button.onActivate, disable: button.disabled">

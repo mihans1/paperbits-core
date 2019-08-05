@@ -26,6 +26,7 @@ import { Workshops } from "./workshops/ko/workshops";
 import { TextblockEditorModule } from "./textblock/ko/textblockEditor.module";
 import { DropbucketModule } from "./workshops/dropbucket/ko/dropbucket.module";
 import { ViewportSelector } from "./workshops/viewports/ko/viewport-selector";
+import { LocaleSelector } from "./workshops/localization/ko/locale-selector";
 import { HostBindingHandler, BalloonBindingHandler, ResizableBindingHandler } from "./ko/bindingHandlers";
 import { MediaHandlers, HtmlEditorProvider } from "@paperbits/common/editing";
 import { LityLightbox } from "@paperbits/common/ui";
@@ -82,6 +83,7 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindSingleton("mediaHandler", MediaHandlers);
         injector.bind("workshops", Workshops);
         injector.bind("viewportSelector", ViewportSelector);
+        injector.bind("localeSelector", LocaleSelector);
         injector.bind("hyperlinkSelector", HyperlinkSelector);
         injector.bind("widgetSelector", WidgetSelector);
         injector.bind("urlSelector", UrlSelector);

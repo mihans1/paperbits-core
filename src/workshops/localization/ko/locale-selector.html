@@ -1,0 +1,9 @@
+<div class="toolbox">
+    <ul class="list">
+        <!-- ko foreach: { data: locales, as: 'locale' } -->
+        <li class="list-item" data-bind="css: { selected: locale === $component.selectedLocale() }">
+            <a href="#" data-bind="click: $component.selectLocale, text: locale.displayName"></a>
+        </li>
+        <!--/ko -->
+    </ul>
+</div>
