@@ -23,6 +23,7 @@ export class PageHost {
         this.layoutViewModel = ko.observable();
         this.router.addRouteChangeListener(this.onRouteChange.bind(this));
         this.eventManager.addEventListener("onDataPush", () => this.onDataPush());
+        // this.eventManager.addEventListener("onLocaleChange", ()=> this.refreshContent());
     }
 
     @OnMounted()

@@ -23,7 +23,7 @@ export class LocaleSelector {
 
     @OnMounted()
     public async initialize(): Promise<void> {
-        const locales = await this.localeService.search("");
+        const locales = await this.localeService.getLocales();
         this.locales(locales);
         this.selectLocale(locales[0]);
     }
@@ -31,5 +31,7 @@ export class LocaleSelector {
     public selectLocale(locale: LocaleModel): void {
         this.selectedLocale(locale);
         this.eventManager.dispatchEvent("onLocaleChange", locale);
+
+        // TODO: Locale is route based, so we need to set prefix like en-us
     }
 }

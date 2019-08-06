@@ -34,6 +34,7 @@ import { LocalCache } from "@paperbits/common/caching";
 import { LayoutService } from "@paperbits/common/layouts/layoutService";
 import { ContentItemService } from "@paperbits/common/contentItems/contentItemService";
 import { PageService } from "@paperbits/common/pages";
+import { LocalizedPageService } from "@paperbits/common/pages";
 import { BlogService } from "@paperbits/common/blogs";
 import { MediaService } from "@paperbits/common/media";
 import { BlockService } from "@paperbits/common/blocks";
@@ -70,7 +71,8 @@ export class CoreModule implements IInjectorModule {
         injector.bindSingleton("contentItemService", ContentItemService);
         injector.bindSingleton("widgetService", WidgetService);
         injector.bindSingleton("layoutService", LayoutService);
-        injector.bindSingleton("pageService", PageService);
+        // injector.bindSingleton("pageService", PageService);
+        injector.bindSingleton("pageService", LocalizedPageService);
         injector.bindSingleton("blogService", BlogService);
         injector.bindSingleton("mediaService", MediaService);
         injector.bindSingleton("blockService", BlockService);

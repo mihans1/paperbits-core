@@ -77,6 +77,7 @@ export class PagesWorkshop {
         this.working(true);
 
         const pageUrl = "/new";
+        
         const pageContract = await this.pageService.createPage(pageUrl, "New page", "", "");
         const pageItem = new PageItem(pageContract);
 
