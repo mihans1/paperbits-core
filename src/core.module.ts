@@ -40,6 +40,7 @@ import { BlockService } from "@paperbits/common/blocks";
 import { NavigationService } from "@paperbits/common/navigation";
 import { SiteService } from "@paperbits/common/sites";
 import { UrlService } from "@paperbits/common/urls";
+import { LocaleService } from "@paperbits/common/localization";
 import { CardModule } from "./card/ko/card.module";
 import { GridModule } from "./grid-layout-section/ko/grid.module";
 import { GridCellModule } from "./grid-cell/ko/gridCell.module";
@@ -76,6 +77,7 @@ export class CoreModule implements IInjectorModule {
         injector.bindSingleton("navigationService", NavigationService);
         injector.bindSingleton("siteService", SiteService);
         injector.bindSingleton("urlService", UrlService);
+        injector.bindSingleton("localeService", LocaleService);
         injector.bindSingleton("permalinkResolver", PermalinkResolver);
         injector.bindSingleton("mediaPermalinkResolver", MediaPermalinkResolver);
 

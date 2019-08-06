@@ -5,6 +5,7 @@ import { IPageService, PageContract } from "@paperbits/common/pages";
 import { ISiteService } from "@paperbits/common/sites";
 import { SitemapBuilder } from "./sitemapBuilder";
 import { Logger } from "@paperbits/common/logging";
+import { ILocaleService } from "@paperbits/common/localization";
 
 
 export class PagePublisher implements IPublisher {
@@ -13,6 +14,7 @@ export class PagePublisher implements IPublisher {
         private readonly siteService: ISiteService,
         private readonly outputBlobStorage: IBlobStorage,
         private readonly htmlPagePublisher: HtmlPagePublisher,
+        private readonly localeService: ILocaleService,
         private readonly logger: Logger
     ) { }
 
@@ -23,7 +25,8 @@ export class PagePublisher implements IPublisher {
         return "<!DOCTYPE html>" + htmlContent;
     }
 
-    private async renderAndUpload(settings: any, page: PageContract): Promise<void> {
+    private async renderAndUpload(settings: any, page: PageContract, locale: string): Promise<void> {
+
         const htmlPage: HtmlPage = {
             title: [page.title, settings.site.title].join(" - "),
             description: page.description || settings.site.description,
@@ -52,31 +55,39 @@ export class PagePublisher implements IPublisher {
             permalink = `${permalink}/index.html`;
         }
 
+        const localePrefix = locale ? `/${locale}` : "";
+        const uploadPath = `${localePrefix}${permalink}`;
         const contentBytes = Utils.stringToUnit8Array(htmlContent);
-        await this.outputBlobStorage.uploadBlob(permalink, contentBytes, "text/html");
+
+        await this.outputBlobStorage.uploadBlob(uploadPath, contentBytes, "text/html");
     }
 
     public async publish(): Promise<void> {
-        try {
-            const pages = await this.pageService.search("");
-            const results = [];
-            const settings = await this.siteService.getSiteSettings();
-            const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+        const locales = await this.localeService.getLocales();
+        // const localizationEnabled = locales.length > 1;
 
-            for (const page of pages) {
-                results.push(this.renderAndUpload(settings, page));
-                sitemapBuilder.appendPermalink(page.permalink);
+        for (const locale of locales) {
+            try {
+                const pages = await this.pageService.search("", locale.code);
+                const results = [];
+                const settings = await this.siteService.getSiteSettings();
+                const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+
+                for (const page of pages) {
+                    results.push(this.renderAndUpload(settings, page, locale.code));
+                    sitemapBuilder.appendPermalink(page.permalink); // TODO: Prefix by hostname and locale.
+                }
+
+                await Promise.all(results);
+
+                const sitemap = sitemapBuilder.buildSitemap();
+                const contentBytes = Utils.stringToUnit8Array(sitemap);
+
+                await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
             }
-
-            await Promise.all(results);
-
-            const sitemap = sitemapBuilder.buildSitemap();
-            const contentBytes = Utils.stringToUnit8Array(sitemap);
-
-            await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
-        }
-        catch (error) {
-            this.logger.traceError(error, "Page publisher");
+            catch (error) {
+                this.logger.traceError(error, "Page publisher");
+            }
         }
     }
 }

@@ -34,6 +34,7 @@ export class ViewManager implements IViewManager {
     public selectedElement: ko.Observable<IHighlightConfig>;
     public selectedElementContextualEditor: ko.Observable<IContextCommandSet>;
     public viewport: ko.Observable<string>;
+    public locale: ko.Observable<string>;
     public hostDocument: Document;
     public host: ko.Observable<IComponent>;
     public shutter: ko.Observable<boolean>;
@@ -66,6 +67,7 @@ export class ViewManager implements IViewManager {
         this.selectedElement = ko.observable<IHighlightConfig>();
         this.selectedElementContextualEditor = ko.observable<IContextCommandSet>();
         this.viewport = ko.observable<string>("xl");
+        this.locale = ko.observable<string>("en-us");
         this.host = ko.observable<IComponent>();
         this.shutter = ko.observable<boolean>(true);
         this.dragSession = ko.observable();
