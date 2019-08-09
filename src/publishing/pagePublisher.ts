@@ -80,8 +80,8 @@ export class PagePublisher implements IPublisher {
 
                 await Promise.all(results);
 
-                const sitemap = sitemapBuilder.buildSitemap();
-                const contentBytes = Utils.stringToUnit8Array(sitemap);
+                const sitemapXml = sitemapBuilder.buildSitemap();
+                const contentBytes = Utils.stringToUnit8Array(sitemapXml);
 
                 await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
             }

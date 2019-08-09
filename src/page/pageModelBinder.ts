@@ -24,29 +24,35 @@ export class PageModelBinder implements IModelBinder<PageModel> {
     }
 
     public async contractToModel(pageContract: PageContract, bindingContext?: Bag<any>): Promise<any> {
-        if (bindingContext && bindingContext["routeKind"] === "layout") {
-            const pageModel = new PageModel();
-            pageModel.title = pageContract.title;
-            pageModel.description = pageContract.description;
-            pageModel.keywords = pageContract.keywords;
-            pageModel.widgets = [<any>new PlaceholderModel("Content")];
+        let locale: string;
 
-            return pageModel;
+        if (bindingContext) {
+            locale = bindingContext["locale"];
+
+            if (bindingContext["routeKind"] === "layout") {
+                const pageModel = new PageModel();
+                pageModel.title = pageContract.title;
+                pageModel.description = pageContract.description;
+                pageModel.keywords = pageContract.keywords;
+                pageModel.widgets = [<any>new PlaceholderModel("Content")];
+
+                return pageModel;
+            }
         }
 
-        pageContract = await this.pageService.getPageByPermalink(bindingContext.navigationPath);
+        pageContract = await this.pageService.getPageByPermalink(bindingContext.navigationPath, locale);
 
         if (!pageContract) {
             pageContract = await this.pageService.getPageByPermalink("/404");
         }
 
-        if (pageContract) {
+        if (pageContract) { // Additonal check if 404 page no defined as well.
             const pageModel = new PageModel();
             pageModel.title = pageContract.title;
             pageModel.description = pageContract.description;
             pageModel.keywords = pageContract.keywords;
 
-            const pageContent = await this.pageService.getPageContent(pageContract.key);
+            const pageContent = await this.pageService.getPageContent(pageContract.key, locale);
 
             if (pageContent && pageContent.nodes) {
                 const modelPromises = pageContent.nodes.map(async (contract: Contract) => {

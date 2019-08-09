@@ -23,7 +23,7 @@ export class PageHost {
         this.layoutViewModel = ko.observable();
         this.router.addRouteChangeListener(this.onRouteChange.bind(this));
         this.eventManager.addEventListener("onDataPush", () => this.onDataPush());
-        // this.eventManager.addEventListener("onLocaleChange", ()=> this.refreshContent());
+        this.eventManager.addEventListener("onLocaleChange", () => this.onLocaleUpdate());
     }
 
     @OnMounted()
@@ -40,12 +40,16 @@ export class PageHost {
         }
     }
 
+    private async onLocaleUpdate(): Promise<void> {
+        this.refreshContent();
+    }
+
     private async refreshContent(): Promise<void> {
         this.viewManager.setShutter();
         const route = this.router.getCurrentRoute();
         const routeKind = route.metadata["routeKind"];
         const layoutViewModel = await this.layoutViewModelBinder.getLayoutViewModel(route.path, routeKind);
-       
+
         this.layoutViewModel(layoutViewModel);
         this.viewManager.removeShutter();
     }

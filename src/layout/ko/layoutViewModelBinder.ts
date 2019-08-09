@@ -106,7 +106,7 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
     }
 
     public async getLayoutViewModel(path: string, routeKind: string): Promise<any> {
-        const bindingContext = { navigationPath: path, routeKind: routeKind };
+        const bindingContext = { navigationPath: path, routeKind: routeKind, locale: "en-us" };
         const layoutContract = await this.layoutService.getLayoutByPermalink(path);
         const layoutModel = await this.layoutModelBinder.contractToModel(layoutContract, bindingContext);
         const layoutViewModel = this.modelToViewModel(layoutModel, null, bindingContext);
