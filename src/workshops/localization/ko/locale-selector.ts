@@ -24,8 +24,9 @@ export class LocaleSelector {
     @OnMounted()
     public async initialize(): Promise<void> {
         const locales = await this.localeService.getLocales();
+        const currentLocale = await this.selectedLocale();
         this.locales(locales);
-        this.selectLocale(locales[0]);
+        this.selectedLocale(currentLocale);
     }
 
     public selectLocale(locale: LocaleModel): void {
