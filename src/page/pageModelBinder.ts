@@ -10,10 +10,7 @@ export class PageModelBinder implements IModelBinder<PageModel> {
     constructor(
         private readonly pageService: IPageService,
         private readonly modelBinderSelector: ModelBinderSelector
-    ) {
-        // rebinding...
-        this.contractToModel = this.contractToModel.bind(this);
-    }
+    ) { }
 
     public canHandleContract(contract: Contract): boolean {
         return contract.type === "page";
@@ -24,13 +21,9 @@ export class PageModelBinder implements IModelBinder<PageModel> {
     }
 
     public async contractToModel(pageContract: PageContract, bindingContext?: Bag<any>): Promise<PageModel> {
-        if (bindingContext && bindingContext["routeKind"] === "layout") {
+        if (bindingContext?.routeKind === "layout") {
             const pageModel = new PageModel();
-            pageModel.title = pageContract.title;
-            pageModel.description = pageContract.description;
-            pageModel.keywords = pageContract.keywords;
             pageModel.widgets = [<any>new PlaceholderModel("Page content")];
-
             return pageModel;
         }
 
@@ -43,9 +36,6 @@ export class PageModelBinder implements IModelBinder<PageModel> {
         if (pageContract) {
             const pageModel = new PageModel();
             pageModel.key = pageContract.key;
-            pageModel.title = pageContract.title;
-            pageModel.description = pageContract.description;
-            pageModel.keywords = pageContract.keywords;
 
             const pageContent = await this.pageService.getPageContent(pageContract.key);
 
@@ -66,15 +56,12 @@ export class PageModelBinder implements IModelBinder<PageModel> {
         }
 
         const pageModel = new PageModel();
-        pageModel.title = "";
-        pageModel.description = "";
-        pageModel.keywords = "";
         pageModel.widgets = [<any>new PlaceholderModel("No pages")];
 
         return pageModel;
     }
 
-    public modelToContract(pageModel: PageModel): Contract {
+    public modelToContract(model: PageModel): Contract {
         const contract: Contract = {
             type: "page"
         };

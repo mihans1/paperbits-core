@@ -7,10 +7,7 @@ export class LayoutModelBinder {
     constructor(
         private readonly layoutService: ILayoutService,
         private readonly modelBinderSelector: ModelBinderSelector
-    ) {
-        // rebinding...
-        this.contractToModel = this.contractToModel.bind(this);
-    }
+    ) { }
 
     public canHandleContract(contract: Contract): boolean {
         return contract.type === "layout";
@@ -23,10 +20,6 @@ export class LayoutModelBinder {
     public async contractToModel(contract: LayoutContract, bindingContext?: Bag<any>): Promise<LayoutModel> {
         const layoutModel = new LayoutModel();
         layoutModel.key = contract.key;
-        layoutModel.title = contract.title;
-        layoutModel.description = contract.description;
-        layoutModel.permalinkTemplate = contract.permalinkTemplate;
-
         const layoutContent = await this.layoutService.getLayoutContent(contract.key);
 
         const modelPromises = layoutContent.nodes.map(async (contract: Contract) => {

@@ -77,7 +77,7 @@ export class PageViewModelBinder implements ViewModelBinder<PageModel, PageViewM
 
         if (bindingContext) {
             childBindingContext = <Bag<any>>Objects.clone(bindingContext);
-            layoutEditing = !!(bindingContext && bindingContext["routeKind"] && bindingContext["routeKind"] === "layout");
+            layoutEditing = !!(bindingContext?.routeKind === "layout");
 
             childBindingContext.readonly = layoutEditing;
         }

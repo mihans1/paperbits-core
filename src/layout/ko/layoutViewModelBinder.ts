@@ -38,7 +38,7 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
         };
 
         const scheduleUpdate = async (): Promise<void> => {
-            if (bindingContext["routeKind"] !== "layout") {
+            if (bindingContext?.routeKind !== "layout") {
                 return;
             }
 
@@ -50,7 +50,7 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
             name: "layout",
             displayName: "Layout",
             model: model,
-            readonly: bindingContext && bindingContext["routeKind"] !== "layout",
+            readonly: bindingContext?.routeKind !== "layout",
             handler: LayoutHandlers,
             provides: ["static", "scripts", "keyboard"],
             applyChanges: async () => {
@@ -60,7 +60,9 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
             onCreate: () => {
                 this.eventManager.addEventListener("onContentUpdate", scheduleUpdate);
             },
-            onDispose: () => this.eventManager.removeEventListener("onContentUpdate", scheduleUpdate)
+            onDispose: () => {
+                this.eventManager.removeEventListener("onContentUpdate", scheduleUpdate);
+            }
         };
 
         viewModel["widgetBinding"] = binding;
@@ -75,7 +77,7 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
 
         if (bindingContext) {
             childBindingContext = <Bag<any>>Objects.clone(bindingContext || {});
-            childBindingContext.readonly = !bindingContext["routeKind"] || bindingContext["routeKind"] !== "layout";
+            childBindingContext.readonly = bindingContext?.routeKind !== "layout";
         }
 
         const viewModels = [];
@@ -87,7 +89,6 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
             viewModels.push(widgetViewModel);
         }
 
-        viewModel.permalinkTemplate(model.permalinkTemplate);
         viewModel.widgets(viewModels);
 
         if (!viewModel["widgetBinding"]) {
@@ -101,7 +102,6 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
         return model instanceof LayoutModel;
     }
 
-    
     public async getLayoutViewModelByKey(path: string, layoutKey: string): Promise<any> {
         const bindingContext = { navigationPath: path, routeKind: "layout" };
         const layoutContract = await this.layoutService.getLayoutByKey(layoutKey);

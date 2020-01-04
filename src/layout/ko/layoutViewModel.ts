@@ -7,15 +7,9 @@ import { Component } from "@paperbits/common/ko/decorators";
     template: template
 })
 export class LayoutViewModel {
-    public title: ko.Observable<string>;
-    public description: ko.Observable<string>;
-    public permalinkTemplate: ko.Observable<string>;
     public widgets: ko.ObservableArray<Object>;
 
     constructor() {
         this.widgets = ko.observableArray<Object>();
-        this.title = ko.observable<string>();
-        this.description = ko.observable<string>();
-        this.permalinkTemplate = ko.observable<string>();
     }
 }
