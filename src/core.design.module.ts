@@ -59,6 +59,7 @@ import { RoleSelector, RoleInput } from "./workshops/roles/ko";
 import "./ko/bindingHandlers/bindingHandlers.command";
 import "./ko/bindingHandlers/bindingHandlers.dialog";
 import "./ko/bindingHandlers/bindingHandlers.activate";
+import { ContentEditorModule } from "./content/ko";
 
 
 export class CoreDesignModule implements IInjectorModule {
@@ -120,7 +121,8 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindModule(new GridEditorModule());
         injector.bindModule(new GridCellEditorModule());
         injector.bindModule(new LayoutEditorModule());
-        injector.bindModule(new PageEditorModule());
+        // injector.bindModule(new PageEditorModule());
+        injector.bindModule(new ContentEditorModule());
         injector.bindModule(new CardEditorModule());
         injector.bindModule(new CollapsiblePanelEditorModule());
         injector.bindToCollection("hyperlinkProviders", UrlHyperlinkProvider);

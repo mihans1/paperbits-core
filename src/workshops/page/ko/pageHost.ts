@@ -1,29 +1,33 @@
 import * as ko from "knockout";
-import { LayoutViewModelBinder, LayoutViewModel } from "../../../layout/ko";
 import { Component, OnMounted, OnDestroyed, Param } from "@paperbits/common/ko/decorators";
 import { Router, Route } from "@paperbits/common/routing";
 import { EventManager } from "@paperbits/common/events";
 import { ViewManager, ViewManagerMode } from "@paperbits/common/ui";
+import { ContentViewModelBinder, ContentViewModel } from "../../../content/ko";
+import { ILayoutService } from "@paperbits/common/layouts";
+import { IPageService } from "@paperbits/common/pages";
 
 
 @Component({
     selector: "page-host",
-    template: "<!-- ko if: layoutViewModel --><!-- ko widget: layoutViewModel, grid: {} --><!-- /ko --><!-- /ko -->"
+    template: "<!-- ko if: contentViewModel --><!-- ko widget: contentViewModel, grid: {} --><!-- /ko --><!-- /ko -->"
 })
 export class PageHost {
-    public readonly layoutViewModel: ko.Observable<LayoutViewModel>;
+    private savingTimeout;
+    public readonly contentViewModel: ko.Observable<ContentViewModel>;
 
     constructor(
-        private readonly layoutViewModelBinder: LayoutViewModelBinder,
+        private readonly contentViewModelBinder: ContentViewModelBinder,
         private readonly router: Router,
         private readonly eventManager: EventManager,
-        private readonly viewManager: ViewManager
+        private readonly viewManager: ViewManager,
+        private readonly layoutService: ILayoutService,
+        private readonly pageService: IPageService
     ) {
-        this.layoutViewModel = ko.observable();
+        this.contentViewModel = ko.observable();
         this.pageKey = ko.observable();
     }
 
-    
     @Param()
     public pageKey: ko.Observable<string>;
 
@@ -33,6 +37,34 @@ export class PageHost {
 
         this.router.addRouteChangeListener(this.onRouteChange);
         this.eventManager.addEventListener("onDataPush", () => this.onDataPush());
+
+
+        this.eventManager.addEventListener("onContentUpdate", this.scheduleUpdate);
+    }
+
+    private async updateContent(): Promise<void> {
+        console.log("UPD");
+
+        // if (!bindingContext || !bindingContext.navigationPath) {
+        //     return;
+        // }
+
+        // const contentContract = {
+        //     type: "page",
+        //     nodes: []
+        // };
+
+        // model.widgets.forEach(section => {
+        //     const modelBinder = this.modelBinderSelector.getModelBinderByModel(section);
+        //     contentContract.nodes.push(modelBinder.modelToContract(section));
+        // });
+
+        // await this.pageService.updatePageContent(model.key, contentContract);
+    }
+
+    private async scheduleUpdate(): Promise<void> {
+        clearTimeout(this.savingTimeout);
+        this.savingTimeout = setTimeout(this.updateContent, 600);
     }
 
     /**
@@ -46,11 +78,19 @@ export class PageHost {
 
     private async refreshContent(): Promise<void> {
         this.viewManager.setShutter();
+
         const route = this.router.getCurrentRoute();
-        const routeKind = route.metadata["routeKind"];
-        const layoutViewModel = await this.layoutViewModelBinder.getLayoutViewModel(route.path, routeKind);
-       
-        this.layoutViewModel(layoutViewModel);
+        const pageContract = await this.pageService.getPageByPermalink(route.path);
+        const pageContentContract = await this.pageService.getPageContent(pageContract.key);
+
+        const bindingContext = { navigationPath: route.path, routeKind: "page", page: pageContentContract };
+
+        const layoutContract = await this.layoutService.getLayoutByPermalink(route.path);
+        const layoutContentContract = await this.layoutService.getLayoutContent(layoutContract.key);
+        const contentViewModel = await this.contentViewModelBinder.getContentViewModelByKey(layoutContentContract, bindingContext);
+
+        this.contentViewModel(contentViewModel);
+
         this.viewManager.removeShutter();
     }
 
@@ -65,5 +105,6 @@ export class PageHost {
     @OnDestroyed()
     public dispose(): void {
         this.router.removeRouteChangeListener(this.onRouteChange);
+        this.eventManager.removeEventListener("onContentUpdate", this.scheduleUpdate);
     }
 }

@@ -1,25 +1,27 @@
 import * as ko from "knockout";
-import { LayoutViewModelBinder, LayoutViewModel } from "../../../layout/ko";
+import { ContentViewModelBinder, ContentViewModel } from "../../../content/ko";
 import { Component, OnMounted, OnDestroyed, Param } from "@paperbits/common/ko/decorators";
 import { Router, Route } from "@paperbits/common/routing";
 import { EventManager } from "@paperbits/common/events";
 import { ViewManager, ViewManagerMode } from "@paperbits/common/ui";
+import { ILayoutService } from "@paperbits/common/layouts";
 
 
 @Component({
     selector: "layout-host",
-    template: "<!-- ko if: layoutViewModel --><!-- ko widget: layoutViewModel, grid: {} --><!-- /ko --><!-- /ko -->"
+    template: "<!-- ko if: contentViewModel --><!-- ko widget: contentViewModel, grid: {} --><!-- /ko --><!-- /ko -->"
 })
 export class LayoutHost {
-    public readonly layoutViewModel: ko.Observable<LayoutViewModel>;
+    public readonly contentViewModel: ko.Observable<ContentViewModel>;
 
     constructor(
-        private readonly layoutViewModelBinder: LayoutViewModelBinder,
+        private readonly contentViewModelBinder: ContentViewModelBinder,
         private readonly router: Router,
         private readonly eventManager: EventManager,
-        private readonly viewManager: ViewManager
+        private readonly viewManager: ViewManager,
+        private readonly layoutService: ILayoutService
     ) {
-        this.layoutViewModel = ko.observable();
+        this.contentViewModel = ko.observable();
         this.layoutKey = ko.observable();
     }
 
@@ -44,11 +46,14 @@ export class LayoutHost {
 
     private async refreshContent(): Promise<void> {
         this.viewManager.setShutter();
-        const route = this.router.getCurrentRoute();
 
-        const layoutViewModel = await this.layoutViewModelBinder.getLayoutViewModelByKey(route.path, this.layoutKey());
+        const route = this.router.getCurrentRoute();
+        const bindingContext = { navigationPath: route.path, routeKind: "layout" };
+        const layoutContract = await this.layoutService.getLayoutByPermalink(route.path);
+        const layoutContentContract = await this.layoutService.getLayoutContent(layoutContract.key);
+        const contentViewModel = await this.contentViewModelBinder.getContentViewModelByKey(layoutContentContract, bindingContext);
        
-        this.layoutViewModel(layoutViewModel);
+        this.contentViewModel(contentViewModel);
         this.viewManager.removeShutter();
     }
 }

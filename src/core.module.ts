@@ -44,6 +44,7 @@ import { GridModule } from "./grid-layout-section/ko/grid.module";
 import { GridCellModule } from "./grid-cell/ko/gridCell.module";
 import { CollapsiblePanelModule } from "./collapsible-panel/ko";
 import { MenuModule } from "./menu/ko";
+import { ContentModule } from "./content/ko";
 
 
 /**
@@ -88,7 +89,8 @@ export class CoreModule implements IInjectorModule {
         injector.bindModule(new KnockoutRegistrationLoaders());
         injector.bindModule(new KoModule());
         injector.bindModule(new LayoutModule());
-        injector.bindModule(new PageModule());
+        // injector.bindModule(new PageModule());
+        injector.bindModule(new ContentModule());
         injector.bindModule(new BlogModule());
         injector.bindModule(new ColumnModule());
         injector.bindModule(new RowModule());
