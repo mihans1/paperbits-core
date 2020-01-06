@@ -30,6 +30,7 @@
         "knockout.validation": "^2.0.4",
         "lity": "^2.4.0",
         "lodash": "^4.17.15",
+        "lunr": "^2.3.8",
         "perfect-scrollbar": "^1.4.0",
         "xhr2": "^0.2.0"
     },

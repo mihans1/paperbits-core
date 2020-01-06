@@ -6,6 +6,7 @@ import { ISiteService } from "@paperbits/common/sites";
 import { SitemapBuilder } from "./sitemapBuilder";
 import { Logger } from "@paperbits/common/logging";
 import { IMediaService } from "@paperbits/common/media";
+import { SearchIndexBuilder } from "./searchIndexBuilder";
 
 
 export class PagePublisher implements IPublisher {
@@ -25,7 +26,7 @@ export class PagePublisher implements IPublisher {
         return "<!DOCTYPE html>" + htmlContent;
     }
 
-    private async renderAndUpload(settings: any, page: PageContract): Promise<void> {
+    private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder): Promise<void> {
         const htmlPage: HtmlPage = {
             title: [page.title, settings.site.title].join(" - "),
             description: page.description || settings.site.description,
@@ -58,6 +59,8 @@ export class PagePublisher implements IPublisher {
         // settings.site.faviconSourceKey
         const htmlContent = await this.renderPage(htmlPage);
 
+        indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
+
         let permalink = page.permalink;
 
         const regex = /\/[\w]+\.html$/gm;
@@ -83,9 +86,10 @@ export class PagePublisher implements IPublisher {
             const results = [];
             const settings = await this.siteService.getSiteSettings();
             const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+            const searchIndexBuilder = new SearchIndexBuilder();
 
             for (const page of pages) {
-                results.push(this.renderAndUpload(settings, page));
+                results.push(this.renderAndUpload(settings, page, searchIndexBuilder));
                 sitemapBuilder.appendPermalink(page.permalink);
             }
 
@@ -93,8 +97,11 @@ export class PagePublisher implements IPublisher {
 
             const sitemap = sitemapBuilder.buildSitemap();
             const contentBytes = Utils.stringToUnit8Array(sitemap);
-
             await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
+
+            const index = searchIndexBuilder.buildIndex();
+            const indexBytes = Utils.stringToUnit8Array(index);
+            await this.outputBlobStorage.uploadBlob("search-index.json", indexBytes, "application/json");
         }
         catch (error) {
             this.logger.traceError(error, "Page publisher");
