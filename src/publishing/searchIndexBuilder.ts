@@ -1,4 +1,5 @@
 import * as lunr from "lunr";
+import * as striptags from "striptags";
 
 interface SearchableDocument {
     permalink: string;
@@ -30,7 +31,7 @@ export class SearchIndexBuilder {
             permalink: permalink,
             title: title,
             description: description,
-            body: body
+            body: striptags(body, [], " ")
         });
     }
 
