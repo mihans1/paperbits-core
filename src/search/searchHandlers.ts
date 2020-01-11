@@ -1,14 +1,14 @@
 ﻿import { IWidgetOrder, IWidgetHandler } from "@paperbits/common/editing";
-import { SearchResultsModel } from "./searchResultsModel";
+import { SearchModel } from "./searchModel";
 
-export class SearchResultsHandlers implements IWidgetHandler {
+export class SearchHandlers implements IWidgetHandler {
     public async getWidgetOrder(): Promise<IWidgetOrder> {
         const widgetOrder: IWidgetOrder = {
-            name: "search-results",
-            displayName: "Search results",
+            name: "search",
+            displayName: "Search website",
             iconClass: "paperbits-cheque-3",
             requires: ["scripts"],
-            createModel: async () => new SearchResultsModel()
+            createModel: async () => new SearchModel()
         };
 
         return widgetOrder;
