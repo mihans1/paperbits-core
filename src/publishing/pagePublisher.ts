@@ -23,7 +23,7 @@ export class PagePublisher implements IPublisher {
         this.logger.traceEvent(`Publishing page ${page.title}...`);
 
         const htmlContent = await this.htmlPagePublisher.renderHtml(page);
-        return "<!DOCTYPE html>" + htmlContent;
+        return htmlContent;
     }
 
     private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder): Promise<void> {
@@ -95,13 +95,13 @@ export class PagePublisher implements IPublisher {
 
             await Promise.all(results);
 
-            const sitemap = sitemapBuilder.buildSitemap();
-            const contentBytes = Utils.stringToUnit8Array(sitemap);
-            await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
-
             const index = searchIndexBuilder.buildIndex();
             const indexBytes = Utils.stringToUnit8Array(index);
             await this.outputBlobStorage.uploadBlob("search-index.json", indexBytes, "application/json");
+
+            const sitemap = sitemapBuilder.buildSitemap();
+            const contentBytes = Utils.stringToUnit8Array(sitemap);
+            await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
         }
         catch (error) {
             this.logger.traceError(error, "Page publisher");

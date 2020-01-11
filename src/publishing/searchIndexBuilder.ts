@@ -1,5 +1,5 @@
 import * as lunr from "lunr";
-import * as striptags from "striptags";
+import * as h2p from "html2plaintext";
 
 interface SearchableDocument {
     permalink: string;
@@ -27,11 +27,20 @@ export class SearchIndexBuilder {
     }
 
     public appendPage(permalink: string, title: string, description: string, body: string): void {
+        const regex = /<main.*>([\s\S]*)<\/main>/g;
+        const match = regex.exec(body);
+
+        if (match?.length < 1) {
+            return;
+        }
+
+        const mainContent = match[1];
+
         this.documents.push({
             permalink: permalink,
             title: title,
             description: description,
-            body: striptags(body, [], " ")
+            body: h2p(mainContent)
         });
     }
 
