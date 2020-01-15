@@ -1,5 +1,5 @@
 import * as ko from "knockout";
-import template from "./locale-editor.html";
+import template from "./localeEditor.html";
 import { Component, OnMounted, Param, Event } from "@paperbits/common/ko/decorators";
 import { LocaleModel } from "@paperbits/common/localization";
 

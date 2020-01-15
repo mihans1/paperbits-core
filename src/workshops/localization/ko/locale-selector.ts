@@ -1,7 +1,7 @@
 import * as ko from "knockout";
 import template from "./locale-selector.html";
 import { Component, OnMounted } from "@paperbits/common/ko/decorators";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { LocaleModel, ILocaleService } from "@paperbits/common/localization";
 
 @Component({
@@ -14,7 +14,7 @@ export class LocaleSelector {
     public readonly locales: ko.ObservableArray<LocaleModel>;
 
     constructor(
-        private readonly eventManager: IEventManager,
+        private readonly eventManager: EventManager,
         private readonly localeService: ILocaleService
     ) {
         this.selectedLocale = ko.observable();

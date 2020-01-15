@@ -25,19 +25,12 @@ export class PageModelBinder implements IModelBinder<PageModel> {
 
     public async contractToModel(pageContract: PageContract, bindingContext?: Bag<any>): Promise<PageModel> {
         let locale: string;
-        
-        if (bindingContext && bindingContext["routeKind"] === "layout") {
-            const pageModel = new PageModel();
-            pageModel.widgets = [<any>new PlaceholderModel("Page content")];
-
+      
         if (bindingContext) {
             locale = bindingContext["locale"];
 
             if (bindingContext["routeKind"] === "layout") {
                 const pageModel = new PageModel();
-                pageModel.title = pageContract.title;
-                pageModel.description = pageContract.description;
-                pageModel.keywords = pageContract.keywords;
                 pageModel.widgets = [<any>new PlaceholderModel("Content")];
 
                 return pageModel;

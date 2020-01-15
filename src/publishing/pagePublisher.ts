@@ -28,7 +28,7 @@ export class PagePublisher implements IPublisher {
         return htmlContent;
     }
 
-    private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder): Promise<void> {
+    private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder, locale: any): Promise<void> {
         const htmlPage: HtmlPage = {
             title: [page.title, settings.site.title].join(" - "),
             description: page.description || settings.site.description,
@@ -88,40 +88,43 @@ export class PagePublisher implements IPublisher {
     public async publish(): Promise<void> {
         const locales = await this.localeService.getLocales();
         // const localizationEnabled = locales.length > 1;
-        try {
-            const pages = await this.pageService.search("");
-            const results = [];
-            const settings = await this.siteService.getSiteSettings();
-            const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
-            const searchIndexBuilder = new SearchIndexBuilder();
 
-            for (const page of pages) {
-                results.push(this.renderAndUpload(settings, page, searchIndexBuilder));
-                sitemapBuilder.appendPermalink(page.permalink);
-            }
+        const locale = locales[0];
 
-        for (const locale of locales) {
-            try {
-                const pages = await this.pageService.search("", locale.code);
-                const results = [];
-                const settings = await this.siteService.getSiteSettings();
-                const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
 
-                for (const page of pages) {
-                    results.push(this.renderAndUpload(settings, page, locale.code));
-                    sitemapBuilder.appendPermalink(page.permalink); // TODO: Prefix by hostname and locale.
-                }
+        const pages = await this.pageService.search("");
+        const results = [];
+        const settings = await this.siteService.getSiteSettings();
+        const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+        const searchIndexBuilder = new SearchIndexBuilder();
 
-                await Promise.all(results);
-
-                const sitemapXml = sitemapBuilder.buildSitemap();
-                const contentBytes = Utils.stringToUnit8Array(sitemapXml);
-
-                await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
-            }
-            catch (error) {
-                this.logger.traceError(error, "Page publisher");
-            }
+        for (const page of pages) {
+            results.push(this.renderAndUpload(settings, page, searchIndexBuilder, locale));
+            sitemapBuilder.appendPermalink(page.permalink);
         }
+
+        // for (const locale of locales) {
+        //     try {
+        //         const pages = await this.pageService.search("", locale.code);
+        //         const results = [];
+        //         const settings = await this.siteService.getSiteSettings();
+        //         const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+
+        //         for (const page of pages) {
+        //             results.push(this.renderAndUpload(settings, page, locale.code));
+        //             sitemapBuilder.appendPermalink(page.permalink); // TODO: Prefix by hostname and locale.
+        //         }
+
+        //         await Promise.all(results);
+
+        //         const sitemapXml = sitemapBuilder.buildSitemap();
+        //         const contentBytes = Utils.stringToUnit8Array(sitemapXml);
+
+        //         await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
+        //     }
+        //     catch (error) {
+        //         this.logger.traceError(error, "Page publisher");
+        //     }
+        // }
     }
 }

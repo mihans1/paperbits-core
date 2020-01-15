@@ -42,6 +42,7 @@ export class DefaultViewManager implements ViewManager {
     public readonly host: ko.Observable<IComponent>;
     public readonly shutter: ko.Observable<boolean>;
     public readonly dragSession: ko.Observable<DragSession>;
+    public readonly locale: ko.Observable<string>;
     public mode: ViewManagerMode;
     public hostDocument: Document;
 
