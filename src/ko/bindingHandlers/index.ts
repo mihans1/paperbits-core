@@ -1,12 +1,9 @@
 export * from "./bindingHandlers.align";
 export * from "./bindingHandlers.background";
 export * from "./bindingHandlers.balloon";
-export * from "./bindingHandlers.codeEditor";
 export * from "./bindingHandlers.collapse";
-export * from "./bindingHandlers.columnSize";
 export * from "./bindingHandlers.columnSizeCfg";
 export * from "./bindingHandlers.component";
-export * from "./bindingHandlers.container";
 export * from "./bindingHandlers.draggables";
 export * from "./bindingHandlers.grid";
 export * from "./bindingHandlers.gridCommand";
@@ -25,3 +22,4 @@ export * from "./bindingHandlers.surface";
 export * from "./bindingHandlers.validationMessageToggle";
 export * from "./bindingHandlers.tooltipToggle";
 export * from "./bindingHandlers.widget";
+export * from "./bindingHandlers.selectItem";

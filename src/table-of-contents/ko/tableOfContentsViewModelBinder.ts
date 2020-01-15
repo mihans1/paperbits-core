@@ -1,11 +1,15 @@
 import { ViewModelBinder } from "@paperbits/common/widgets";
 import { TableOfContentsViewModel } from "./tableOfContentsViewModel";
 import { TableOfContentsModel } from "../tableOfContentsModel";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { Bag } from "@paperbits/common";
+import { TableOfContentsModelBinder, TableOfContentsContract } from "..";
 
 export class TableOfContentsViewModelBinder implements ViewModelBinder<TableOfContentsModel, TableOfContentsViewModel> {
-    constructor(private readonly eventManager: IEventManager) { }
+    constructor(
+        private readonly eventManager: EventManager,
+        private readonly tableOfContentsModelBinder: TableOfContentsModelBinder
+    ) { }
 
     public async modelToViewModel(model: TableOfContentsModel, viewModel?: TableOfContentsViewModel, bindingContext?: Bag<any>): Promise<TableOfContentsViewModel> {
         if (!viewModel) {
@@ -18,10 +22,15 @@ export class TableOfContentsViewModelBinder implements ViewModelBinder<TableOfCo
             displayName: "Table of contents",
             readonly: bindingContext ? bindingContext.readonly : false,
             model: model,
-            editor: "table-of-contents-editor",
             applyChanges: async (updatedModel: TableOfContentsModel) => {
-                Object.assign(model, updatedModel);
-                this.modelToViewModel(model, viewModel);
+                const contract: TableOfContentsContract = {
+                    type: "table-of-contents",
+                    navigationItemKey: updatedModel.navigationItemKey
+                };
+
+                model = await this.tableOfContentsModelBinder.contractToModel(contract, bindingContext);
+
+                this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");
             }
         };

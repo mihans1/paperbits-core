@@ -2,24 +2,23 @@ import * as ko from "knockout";
 import * as Utils from "@paperbits/common/utils";
 import * as Objects from "@paperbits/common/objects";
 import template from "./gridCellEditor.html";
-import { IViewManager } from "@paperbits/common/ui";
+import { ViewManager } from "@paperbits/common/ui";
 import { Component, OnMounted, Param, Event } from "@paperbits/common/ko/decorators";
 import { GridCellModel } from "../gridCellModel";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { ContainerStylePluginConfig } from "@paperbits/styles/contracts";
 
 
 @Component({
     selector: "grid-cell-editor",
-    template: template,
-    injectable: "gridCellEditor"
+    template: template
 })
 export class GridCellEditor {
     public readonly containerConfig: ko.Observable<ContainerStylePluginConfig>;
 
     constructor(
-        private readonly viewManager: IViewManager,
-        private readonly eventManager: IEventManager
+        private readonly viewManager: ViewManager,
+        private readonly eventManager: EventManager
     ) {
         this.containerConfig = ko.observable<ContainerStylePluginConfig>();
         this.eventManager.addEventListener("onViewportChange", this.initialize.bind(this));

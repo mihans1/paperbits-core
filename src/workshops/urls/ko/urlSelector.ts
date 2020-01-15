@@ -2,12 +2,13 @@ import * as ko from "knockout";
 import template from "./urlSelector.html";
 import { UrlItem } from "./urlItem";
 import { IUrlService, UrlContract } from "@paperbits/common/urls";
-import { Component, Event } from "@paperbits/common/ko/decorators";
+import { Component, Event, OnMounted } from "@paperbits/common/ko/decorators";
+import { HyperlinkModel } from "@paperbits/common/permalinks";
+import { ChangeRateLimit } from "@paperbits/common/ko/consts";
 
 @Component({
     selector: "url-selector",
-    template: template,
-    injectable: "urlSelector"
+    template: template
 })
 export class UrlSelector {
     public readonly searchPattern: ko.Observable<string>;
@@ -16,28 +17,26 @@ export class UrlSelector {
     public readonly working: ko.Observable<boolean>;
     public readonly selectedUrl: ko.Observable<UrlItem>;
 
+    private preSelectedModel: HyperlinkModel;
+
+    constructor(private readonly urlService: IUrlService) {
+        this.uri = ko.observable<string>("https://");
+        this.urls = ko.observableArray();
+        this.selectedUrl = ko.observable();
+        this.searchPattern = ko.observable();
+        this.working = ko.observable();
+    }
+
     @Event()
     public onSelect: (url: UrlContract) => void;
 
-    constructor(private readonly urlService: IUrlService) {
-        this.selectUrl = this.selectUrl.bind(this);
-        this.createUrl = this.createUrl.bind(this);
+    @OnMounted()
+    public async onMounted(): Promise<void> {
+        await this.searchUrls();
 
-        this.uri = ko.observable<string>("https://");
-        this.urls = ko.observableArray<UrlItem>();
-        this.selectedUrl = ko.observable<UrlItem>();
-        this.searchPattern = ko.observable<string>();
-        this.searchPattern.subscribe(this.searchUrls);
-        this.working = ko.observable(true);
-
-        // setting up...
-        this.urls = ko.observableArray<UrlItem>();
-        this.selectedUrl = ko.observable<UrlItem>();
-        this.searchPattern = ko.observable<string>();
-        this.searchPattern.subscribe(this.searchUrls);
-        this.working = ko.observable(true);
-
-        this.searchUrls();
+        this.searchPattern
+            .extend(ChangeRateLimit)
+            .subscribe(this.searchUrls);
     }
 
     public async searchUrls(searchPattern: string = ""): Promise<void> {
@@ -47,6 +46,15 @@ export class UrlSelector {
         const urlItems = urls.map(url => new UrlItem(url));
 
         this.urls(urlItems);
+
+        if (!this.selectedUrl() && this.preSelectedModel) {
+            const currentPermalink = this.preSelectedModel.href;
+            const current = urlItems.find(item => item.permalink() === currentPermalink);
+            if (current) {
+                await this.selectUrl(current);
+            }
+        }
+
         this.working(false);
     }
 
@@ -61,6 +69,10 @@ export class UrlSelector {
         if (this.onSelect) {
             this.onSelect(urlItem.toUrl());
         }
+    }
+
+    public selectResource(resource: HyperlinkModel): void {
+        this.preSelectedModel = resource;
     }
 
     public async createUrl(): Promise<void> {

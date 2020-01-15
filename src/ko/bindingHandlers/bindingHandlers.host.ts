@@ -1,7 +1,6 @@
 ﻿import * as ko from "knockout";
-import * as Utils from "@paperbits/common/utils";
-import { IEventManager, GlobalEventHandler } from "@paperbits/common/events";
-import { IViewManager, ViewManagerMode } from "@paperbits/common/ui";
+import { GlobalEventHandler } from "@paperbits/common/events";
+import { ViewManager, ViewManagerMode } from "@paperbits/common/ui";
 import { Router, Route } from "@paperbits/common/routing";
 import { MetaDataSetter } from "@paperbits/common/meta/metaDataSetter";
 import { SiteService } from "@paperbits/common/sites";
@@ -9,35 +8,25 @@ import { IMediaService } from "@paperbits/common/media";
 
 export class HostBindingHandler {
     private readonly hostComponent: ko.Observable<any>;
+    private readonly designTime: ko.Observable<boolean>;
 
     constructor(
-        private readonly eventManager: IEventManager,
         private readonly globalEventHandler: GlobalEventHandler,
-        private readonly viewManager: IViewManager,
+        private readonly viewManager: ViewManager,
         private readonly router: Router,
         private readonly siteService: SiteService,
         private readonly mediaService: IMediaService
     ) {
         this.hostComponent = ko.observable();
+        this.designTime = ko.observable(true);
+
 
         ko.bindingHandlers["host"] = {
             init: (element: HTMLElement, valueAccessor: () => any) => {
                 const config = valueAccessor();
-
-                const onPointerMove = (event: MouseEvent): void => {
-                    const elements = Utils.elementsFromPoint(element.ownerDocument, event.clientX, event.clientY);
-
-                    if (elements.some(el => el.classList.contains("toolbox") || el.classList.contains("editor"))) {
-                        element.classList.add("no-pointer-events");
-                    }
-                    else {
-                        element.classList.remove("no-pointer-events");
-                    }
-                };
-
-                document.addEventListener("mousemove", onPointerMove, true);
-
                 const css = ko.observable<string>("desktop");
+
+                config.block.subscribe(this.designTime);
 
                 config.viewport.subscribe((viewport) => {
                     this.viewManager.mode = ViewManagerMode.selecting;
@@ -75,10 +64,6 @@ export class HostBindingHandler {
 
                 ko.applyBindingsToNode(element, { css: css }, null);
 
-                ko.utils.domNodeDisposal.addDisposeCallback(element, () => {
-                    document.removeEventListener("mousemove", onPointerMove);
-                });
-
                 const hostElement = this.createIFrame();
                 element.appendChild(hostElement);
             },
@@ -101,7 +86,10 @@ export class HostBindingHandler {
         };
 
         const onPointerDown = (event: MouseEvent): void => {
-            // TODO: Move to GridEditor
+            if (!event.ctrlKey && !event.metaKey) {
+                return;
+            }
+
             const htmlElement = <HTMLElement>event.target;
             const htmlLinkElement = <HTMLLinkElement>htmlElement.closest("A");
 
@@ -109,34 +97,29 @@ export class HostBindingHandler {
                 return;
             }
 
-            if (!htmlLinkElement.closest("[contenteditable]")) {
-                event.preventDefault();
-            }
+            event.preventDefault();
 
-            if (event.ctrlKey) { // Preventing click on links if Ctrl key is not pressed.
-                this.router.navigateTo(htmlLinkElement.href);
-            }
-            else {
-                this.eventManager.dispatchEvent("DesignTimeNavigationHint");
-            }
+            this.router.navigateTo(htmlLinkElement.href);
         };
 
         let hostedWindowHistory;
 
-        const onRouteChange = (route: Route) => {
+        const onRouteChange = (route: Route): void => {
             route.metadata.originatedByHost = true;
             hostedWindowHistory.pushState(route, route.title, route.url);
         };
 
         const onLoad = async (): Promise<void> => {
-            this.globalEventHandler.appendDocument(hostElement.contentDocument);
-            this.setRootElement(hostElement.contentDocument.body);
+            const contentDocument = hostElement.contentDocument;
+
+            this.globalEventHandler.appendDocument(contentDocument);
+            this.setRootElement(contentDocument.body);
 
             /* TODO: Move these events to grid designer code */
-            hostElement.contentDocument.addEventListener("click", onClick, true);
-            hostElement.contentDocument.addEventListener("mousedown", onPointerDown, true);
+            contentDocument.addEventListener("mousedown", onPointerDown, true);
+            contentDocument.addEventListener("click", onClick, true);
 
-            this.viewManager["hostDocument"] = hostElement.contentDocument;
+            this.viewManager["hostDocument"] = contentDocument;
 
             /* intercepting push state of the hosted iframe window */
             hostedWindowHistory = hostElement.contentDocument.defaultView.window.history;
@@ -185,8 +168,6 @@ export class HostBindingHandler {
         hostElement.addEventListener("load", onLoad, false);
         hostElement.addEventListener("beforeunload", onUnload, false);
 
-
-
         return hostElement;
     }
 
@@ -195,6 +176,8 @@ export class HostBindingHandler {
 
         const styleElement = document.createElement("style");
         bodyElement.ownerDocument.head.appendChild(styleElement);
+
+        ko.applyBindingsToNode(bodyElement, { css: { design: this.designTime } }, null);
         ko.applyBindingsToNode(styleElement, { styleSheet: {} }, null);
     }
 }

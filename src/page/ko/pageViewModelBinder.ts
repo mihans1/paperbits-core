@@ -7,7 +7,7 @@ import { ViewModelBinderSelector } from "../../ko/viewModelBinderSelector";
 import { PageHandlers } from "../pageHandlers";
 import { IWidgetBinding } from "@paperbits/common/editing";
 import { IPageService } from "@paperbits/common/pages";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { PlaceholderViewModel } from "../../placeholder/ko";
 
 export class PageViewModelBinder implements ViewModelBinder<PageModel, PageViewModel> {
@@ -15,7 +15,7 @@ export class PageViewModelBinder implements ViewModelBinder<PageModel, PageViewM
         private readonly viewModelBinderSelector: ViewModelBinderSelector,
         private readonly pageService: IPageService,
         private readonly modelBinderSelector: ModelBinderSelector,
-        private readonly eventManager: IEventManager
+        private readonly eventManager: EventManager
     ) { }
 
     public createBinding(model: PageModel, viewModel: PageViewModel, bindingContext: Bag<any>, layoutEditing: boolean): void {
@@ -25,8 +25,6 @@ export class PageViewModelBinder implements ViewModelBinder<PageModel, PageViewM
             if (!bindingContext || !bindingContext.navigationPath) {
                 return;
             }
-
-            const page = await this.pageService.getPageByPermalink(bindingContext.navigationPath);
 
             const contentContract = {
                 type: "page",
@@ -38,7 +36,7 @@ export class PageViewModelBinder implements ViewModelBinder<PageModel, PageViewM
                 contentContract.nodes.push(modelBinder.modelToContract(section));
             });
 
-            await this.pageService.updatePageContent(page.key, contentContract);
+            await this.pageService.updatePageContent(model.key, contentContract);
         };
 
         const scheduleUpdate = async (): Promise<void> => {
@@ -53,7 +51,7 @@ export class PageViewModelBinder implements ViewModelBinder<PageModel, PageViewM
             model: model,
             handler: PageHandlers,
             provides: ["static", "scripts", "keyboard"],
-            applyChanges: () => this.modelToViewModel(model, viewModel, bindingContext),
+            applyChanges: async () => await this.modelToViewModel(model, viewModel, bindingContext),
             onCreate: () => {
                 if (!layoutEditing) { // Note: We check specifically for "false".
                     this.eventManager.addEventListener("onContentUpdate", scheduleUpdate);

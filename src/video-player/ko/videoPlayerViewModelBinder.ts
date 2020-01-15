@@ -1,15 +1,15 @@
 import { VideoPlayerViewModel } from "./videoPlayerViewModel";
 import { ViewModelBinder } from "@paperbits/common/widgets";
 import { VideoPlayerModel } from "../videoPlayerModel";
-import { IEventManager } from "@paperbits/common/events";
-import { IStyleCompiler } from "@paperbits/common/styles/IStyleCompiler";
+import { EventManager } from "@paperbits/common/events";
+import { StyleCompiler } from "@paperbits/common/styles/styleCompiler";
 import { Bag } from "@paperbits/common";
 import { IPermalinkResolver } from "@paperbits/common/permalinks";
 
 export class VideoPlayerViewModelBinder implements ViewModelBinder<VideoPlayerModel, VideoPlayerViewModel> {
     constructor(
-        private readonly eventManager: IEventManager,
-        private readonly styleCompiler: IStyleCompiler,
+        private readonly eventManager: EventManager,
+        private readonly styleCompiler: StyleCompiler,
         private readonly mediaPermalinkResolver: IPermalinkResolver
     ) { }
 
@@ -41,9 +41,8 @@ export class VideoPlayerViewModelBinder implements ViewModelBinder<VideoPlayerMo
             readonly: bindingContext ? bindingContext.readonly : false,
             model: model,
             editor: "video-player-editor",
-            applyChanges: (changes) => {
-                Object.assign(model, changes);
-                this.modelToViewModel(model, viewModel);
+            applyChanges: async (changes) => {
+                await this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");
             }
         };

@@ -8,8 +8,7 @@ import { BlockService } from "@paperbits/common/blocks";
 
 @Component({
     selector: "section-layout-selector",
-    template: template,
-    injectable: "sectionLayoutSelector"
+    template: template
 })
 export class SectionLayoutSelector implements IResourceSelector<SectionModel> {
     @Event()
@@ -23,9 +22,8 @@ export class SectionLayoutSelector implements IResourceSelector<SectionModel> {
         this.onBlockSelected = this.onBlockSelected.bind(this);
     }
 
-    public selectSectionLayout(layout: string): void {
+    public selectSectionLayout(): void {
         const sectionModel = new SectionModel();
-        sectionModel.container = layout;
 
         if (this.onSelect) {
             this.onSelect(sectionModel);

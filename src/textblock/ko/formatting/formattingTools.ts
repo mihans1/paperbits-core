@@ -1,17 +1,16 @@
 import * as ko from "knockout";
 import * as Utils from "@paperbits/common/utils";
 import template from "./formattingTools.html";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { IHtmlEditorProvider, HtmlEditorEvents, alignmentStyleKeys } from "@paperbits/common/editing";
-import { Component, OnMounted } from "@paperbits/common/ko/decorators";
+import { Component, OnMounted, OnDestroyed } from "@paperbits/common/ko/decorators";
 import { FontContract, ColorContract } from "@paperbits/styles/contracts";
-import { IViewManager } from "@paperbits/common/ui";
+import { ViewManager } from "@paperbits/common/ui";
 import { StyleService } from "@paperbits/styles/styleService";
 
 @Component({
     selector: "formatting",
-    template: template,
-    injectable: "formattingTools"
+    template: template
 })
 export class FormattingTools {
     private textStyles: {}[];
@@ -20,6 +19,7 @@ export class FormattingTools {
     public readonly italic: ko.Observable<boolean>;
     public readonly underlined: ko.Observable<boolean>;
     public readonly highlighted: ko.Observable<boolean>;
+    public readonly code: ko.Observable<boolean>;
     public readonly pre: ko.Observable<boolean>;
     public readonly style: ko.Observable<string>;
     public readonly appearance: ko.Observable<string>;
@@ -38,8 +38,8 @@ export class FormattingTools {
 
     constructor(
         private readonly htmlEditorProvider: IHtmlEditorProvider,
-        private readonly eventManager: IEventManager,
-        private readonly viewManager: IViewManager,
+        private readonly eventManager: EventManager,
+        private readonly viewManager: ViewManager,
         private readonly styleService: StyleService
     ) {
         this.style = ko.observable<string>();
@@ -54,6 +54,7 @@ export class FormattingTools {
         this.italic = ko.observable<boolean>();
         this.underlined = ko.observable<boolean>();
         this.highlighted = ko.observable<boolean>();
+        this.code = ko.observable<boolean>();
         this.ul = ko.observable<boolean>();
         this.ol = ko.observable<boolean>();
         this.pre = ko.observable<boolean>();
@@ -76,6 +77,11 @@ export class FormattingTools {
         const htmlEditor = this.htmlEditorProvider.getCurrentHtmlEditor();
 
         if (!htmlEditor) {
+            if (this.textStyles) {
+                const appearance = this.textStyles[0]["displayName"];    
+                this.appearance(appearance);
+                this.style("Normal");
+            }
             return;
         }
         
@@ -85,6 +91,7 @@ export class FormattingTools {
         this.italic(selectionState.italic);
         this.underlined(selectionState.underlined);
         this.highlighted(selectionState.highlighted);
+        this.code(selectionState.code);
         this.colored(!!selectionState.colorKey);
         this.selectedColorKey(selectionState.colorKey);
         this.ul(selectionState.bulletedList);
@@ -207,6 +214,10 @@ export class FormattingTools {
         this.htmlEditorProvider.getCurrentHtmlEditor().toggleHighlighted();
     }
 
+    public toggleCode(): void {
+        this.htmlEditorProvider.getCurrentHtmlEditor().toggleCode();
+    }
+
     public toggleSize(): void {
         this.htmlEditorProvider.getCurrentHtmlEditor().toggleSize();
     }
@@ -289,6 +300,7 @@ export class FormattingTools {
         }
     }
 
+    @OnDestroyed()
     public dispose(): void {
         this.eventManager.removeEventListener(HtmlEditorEvents.onSelectionChange, this.updateFormattingState);
     }

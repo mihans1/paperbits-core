@@ -1,20 +1,16 @@
 ﻿import * as ko from "knockout";
 import template from "./layouts.html";
-import { Router } from "@paperbits/common/routing";
-import { IViewManager, IView } from "@paperbits/common/ui";
+import { ViewManager, View } from "@paperbits/common/ui";
 import { ILayoutService } from "@paperbits/common/layouts";
-import { Keys } from "@paperbits/common/keyboard";
 import { LayoutItem } from "./layoutItem";
 import { Component, OnMounted } from "@paperbits/common/ko/decorators";
+import { ChangeRateLimit } from "@paperbits/common/ko/consts";
 
 @Component({
     selector: "layouts",
-    template: template,
-    injectable: "layoutsWorkshop"
+    template: template
 })
 export class LayoutsWorkshop {
-    private searchTimeout: any;
-
     public readonly searchPattern: ko.Observable<string>;
     public readonly layouts: ko.ObservableArray<LayoutItem>;
     public readonly working: ko.Observable<boolean>;
@@ -22,30 +18,24 @@ export class LayoutsWorkshop {
 
     constructor(
         private readonly layoutService: ILayoutService,
-        private readonly router: Router,
-        private readonly viewManager: IViewManager
+        private readonly viewManager: ViewManager
     ) {
-        // rebinding...
-        this.searchLayouts = this.searchLayouts.bind(this);
-        this.addLayout = this.addLayout.bind(this);
-        this.selectLayout = this.selectLayout.bind(this);
-        this.onKeyDown = this.onKeyDown.bind(this);
-
-        // setting up...
-        this.layouts = ko.observableArray<LayoutItem>();
-        this.selectedLayout = ko.observable<LayoutItem>();
-        this.searchPattern = ko.observable<string>();
-        this.searchPattern.subscribe(this.searchLayouts);
-        this.working = ko.observable(true);
+        this.layouts = ko.observableArray();
+        this.selectedLayout = ko.observable();
+        this.searchPattern = ko.observable();
+        this.working = ko.observable();
     }
 
     @OnMounted()
     public async initialize(): Promise<void> {
-        this.searchPattern.subscribe(this.searchLayouts);
-        this.searchLayouts();
+        await this.searchLayouts();
+
+        this.searchPattern
+            .extend(ChangeRateLimit)
+            .subscribe(this.searchLayouts);
     }
 
-    public async launchSearch(searchPattern: string = ""): Promise<void> {
+    public async searchLayouts(searchPattern: string = ""): Promise<void> {
         this.working(true);
         this.layouts([]);
 
@@ -56,16 +46,10 @@ export class LayoutsWorkshop {
         this.working(false);
     }
 
-    public async searchLayouts(searchPattern: string = ""): Promise<void> {
-        clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(() => this.launchSearch(searchPattern), 600);
-    }
-
     public selectLayout(layoutItem: LayoutItem): void {
         this.selectedLayout(layoutItem);
-        this.viewManager.setHost({ name: "content-host" });
 
-        const view: IView = {
+        const view: View = {
             heading: "Layout",
             component: {
                 name: "layout-details-workshop",
@@ -92,21 +76,5 @@ export class LayoutsWorkshop {
         this.selectLayout(layoutItem);
 
         this.working(false);
-    }
-
-    public async deleteSelectedLayout(): Promise<void> {
-        // TODO: Show confirmation dialog according to mockup
-        this.viewManager.closeWorkshop("layout-details-workshop");
-
-        await this.layoutService.deleteLayout(this.selectedLayout().toLayout());
-        await this.searchLayouts();
-
-        this.router.navigateTo("/");
-    }
-
-    public onKeyDown(item: LayoutItem, event: KeyboardEvent): void {
-        if (event.keyCode === Keys.Delete) {
-            this.deleteSelectedLayout();
-        }
     }
 }

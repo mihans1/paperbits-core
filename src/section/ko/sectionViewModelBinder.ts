@@ -5,16 +5,16 @@ import { SectionModel } from "../sectionModel";
 import { PlaceholderViewModel } from "../../placeholder/ko/placeholderViewModel";
 import { ViewModelBinderSelector } from "../../ko/viewModelBinderSelector";
 import { SectionHandlers } from "../sectionHandlers";
-import { IEventManager } from "@paperbits/common/events";
-import { IStyleCompiler } from "@paperbits/common/styles";
+import { EventManager } from "@paperbits/common/events";
+import { StyleCompiler } from "@paperbits/common/styles";
 import { Bag } from "@paperbits/common";
 
 
 export class SectionViewModelBinder implements ViewModelBinder<SectionModel, SectionViewModel> {
     constructor(
         private readonly viewModelBinderSelector: ViewModelBinderSelector,
-        private readonly eventManager: IEventManager,
-        private readonly styleCompiler: IStyleCompiler
+        private readonly eventManager: EventManager,
+        private readonly styleCompiler: StyleCompiler
     ) { }
 
     public async modelToViewModel(model: SectionModel, viewModel?: SectionViewModel, bindingContext?: Bag<any>): Promise<SectionViewModel> {
@@ -49,9 +49,8 @@ export class SectionViewModelBinder implements ViewModelBinder<SectionModel, Sec
             flow: "block",
             editor: "layout-section-editor",
             handler: SectionHandlers,
-            applyChanges: (changes) => {
-                Object.assign(model, changes);
-                this.modelToViewModel(model, viewModel);
+            applyChanges: async (changes) => {
+                await this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");
             }
         };

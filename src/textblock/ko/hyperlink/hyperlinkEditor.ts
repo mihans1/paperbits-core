@@ -1,15 +1,14 @@
 ﻿import * as ko from "knockout";
 import template from "./hyperlinkEditor.html";
 import { IHtmlEditorProvider } from "@paperbits/common/editing/htmlEditorProvider";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { HyperlinkModel } from "@paperbits/common/permalinks";
 import { PermalinkResolver } from "@paperbits/common/permalinks/permalinkResolver";
-import { Component } from "@paperbits/common/ko/decorators";
+import { Component, OnDestroyed } from "@paperbits/common/ko/decorators";
 
 @Component({
     selector: "hyperlink-editor",
-    template: template,
-    injectable: "hyperlinkEditor"
+    template: template
 })
 export class HyperlinkEditor {
     public readonly hyperlink: ko.Observable<HyperlinkModel>;
@@ -17,7 +16,7 @@ export class HyperlinkEditor {
     constructor(
         private readonly htmlEditorProvider: IHtmlEditorProvider,
         private readonly permalinkResolver: PermalinkResolver,
-        private readonly eventManager: IEventManager
+        private readonly eventManager: EventManager
     ) {
         this.htmlEditorProvider = htmlEditorProvider;
         this.permalinkResolver = permalinkResolver;
@@ -58,6 +57,7 @@ export class HyperlinkEditor {
         htmlEditor.expandSelection();
     }
 
+    @OnDestroyed()
     public dispose(): void {
         this.eventManager.removeEventListener("htmlEditorChanged", this.onSelectionChange);
     }

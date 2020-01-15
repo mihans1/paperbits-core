@@ -6,15 +6,15 @@ import { GridCellModel } from "../gridCellModel";
 import { ViewModelBinderSelector } from "../../ko/viewModelBinderSelector";
 import { PlaceholderViewModel } from "../../placeholder/ko/placeholderViewModel";
 import { GridCellHandlers } from "../gridCellHandlers";
-import { IEventManager } from "@paperbits/common/events";
-import { IStyleCompiler } from "@paperbits/common/styles";
+import { EventManager } from "@paperbits/common/events";
+import { StyleCompiler } from "@paperbits/common/styles";
 import { Bag } from "@paperbits/common";
 
 export class GridCellViewModelBinder implements ViewModelBinder<GridCellModel, GridCellViewModel> {
     constructor(
         private readonly viewModelBinderSelector: ViewModelBinderSelector,
-        private readonly eventManager: IEventManager,
-        private readonly styleCompiler: IStyleCompiler
+        private readonly eventManager: EventManager,
+        private readonly styleCompiler: StyleCompiler
     ) { }
 
     public async modelToViewModel(model: GridCellModel, viewModel?: GridCellViewModel, bindingContext?: Bag<any>): Promise<GridCellViewModel> {
@@ -53,9 +53,8 @@ export class GridCellViewModelBinder implements ViewModelBinder<GridCellModel, G
             model: model,
             editor: "grid-cell-editor",
             handler: GridCellHandlers,
-            applyChanges: (changes) => {
-                Object.assign(model, changes);
-                this.modelToViewModel(model, viewModel);
+            applyChanges: async (changes) => {
+                await this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");
             }
         };

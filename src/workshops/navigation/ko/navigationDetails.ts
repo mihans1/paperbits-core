@@ -1,28 +1,27 @@
 ﻿import * as ko from "knockout";
 import template from "./navigationDetails.html";
-import { IViewManager } from "@paperbits/common/ui";
+import { ViewManager } from "@paperbits/common/ui";
 import { NavigationItemViewModel } from "./navigationItemViewModel";
 import { HyperlinkModel, IPermalinkResolver } from "@paperbits/common/permalinks";
 import { Component, Event, OnMounted, Param } from "@paperbits/common/ko/decorators";
 
 @Component({
     selector: "navigation-details-workshop",
-    template: template,
-    injectable: "navigationDetailsWorkshop"
+    template: template
 })
 export class NavigationDetailsWorkshop {
     public readonly hyperlinkTitle: ko.Computed<string>;
     public readonly hyperlink: ko.Observable<HyperlinkModel>;
 
     @Event()
-    public onDeleteCallback: (isRootItem: boolean) => void;
+    public onDelete: () => void;
 
     @Param()
     public navigationItem: NavigationItemViewModel;
 
     constructor(
         private readonly permalinkResolver: IPermalinkResolver,
-        private readonly viewManager: IViewManager
+        private readonly viewManager: ViewManager
     ) {
         // rebinding...
         this.onMounted = this.onMounted.bind(this);
@@ -60,23 +59,17 @@ export class NavigationDetailsWorkshop {
         this.hyperlink(hyperlink);
 
         const targetKey = hyperlink ? hyperlink.targetKey : null;
-        
+
         this.navigationItem.targetKey(targetKey);
     }
 
     public deleteNavigationItem(): void {
-        let isRootItem = false;
-        if (this.navigationItem.parent) {
-            this.navigationItem.remove();
+        this.navigationItem.remove();
+        this.viewManager.notifySuccess("Navigation", `Navigation item "${this.navigationItem.label()}" was deleted.`);
+        this.viewManager.closeWorkshop("navigation-details-workshop");
 
-            this.viewManager.notifySuccess("Navigation", `Navigation item "${this.navigationItem.label()}" was deleted.`);
-            this.viewManager.closeWorkshop("navigation-details-workshop");
-        } else {
-            isRootItem = true;
-        }
-
-        if (this.onDeleteCallback) {
-            this.onDeleteCallback(isRootItem);
+        if (this.onDelete) {
+            this.onDelete();
         }
     }
 }

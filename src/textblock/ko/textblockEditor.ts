@@ -1,18 +1,17 @@
 ﻿import * as ko from "knockout";
 import template from "./textblockEditor.html";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { Component, OnMounted, Param, Event } from "@paperbits/common/ko/decorators";
 import { TextblockModel } from "..";
 
 @Component({
     selector: "html-editor",
-    template: template,
-    injectable: "textblockEditor"
+    template: template
 })
 export class TextblockEditor {
     public pluginNames: ko.ObservableArray<string>;
 
-    constructor(private readonly eventManager: IEventManager) {
+    constructor(private readonly eventManager: EventManager) {
         this.pluginNames = ko.observableArray<string>();
         this.pluginNames.push("formatting");
         this.pluginNames.push("hyperlink-editor");

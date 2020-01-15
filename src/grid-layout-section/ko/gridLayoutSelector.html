@@ -1,18 +1,48 @@
 <div class="editor row-layout-selector">
-    <div class="flex-container flex-container-row">
+    <div class="flex flex-row">
         <h1>
             Add section
         </h1>
         <hr />
 
-        <div>
-            <!-- ko foreach: { data: $component.snippets, as: 'snippet' } -->
-            <div class="snippet-grid" data-bind="click: $component.selectLayout, styled: snippet.styles">
-                <!-- ko foreach: { data: snippet.widgets, as: 'widget' } -->
-                <div class="snippet-grid-cell" data-bind="styled: widget.styles, attr: { role: widget.role }"></div>
-                <!-- /ko -->
+        <div class="tabs" role="tablist">
+            <div class="tab" data-bind="css: { 'tab-is-active': !selected() }, attr: { 'aria-selected': !selected() }">
+                <a href="#" data-bind="click: selected.bind($data,undefined), focus: true" title="New section"
+                    role="tab" aria-label="add empty section">
+                    New section
+                </a>
             </div>
-            <!-- /ko -->
+            <div class="tab"
+                data-bind="css: { 'tab-is-active': selected() === 'saved' }, attr: { 'aria-selected': selected() === 'saved' }">
+                <a href="#" data-bind="click: selected.bind($data,'saved')" title="From library" role="tab"
+                    aria-label="add from library">
+                    From library
+                </a>
+            </div>
         </div>
+
+        <!-- ko if: !selected() -->
+        <div class="flex flex-column">
+            <div class="flex-item flex-item-grow" role="tabpanel">
+                <div role="list">
+                    <!-- ko foreach: { data: $component.snippets, as: 'snippet' } -->
+                    <a href="#" class="snippet-grid list-item" role="listitem"
+                        data-bind="click: $component.selectLayout, styled: snippet.styles">
+                        <!-- ko foreach: { data: snippet.widgets, as: 'widget' } -->
+                        <div class="snippet-grid-cell" data-bind="styled: widget.styles, attr: { role: widget.role }">
+                        </div>
+                        <!-- /ko -->
+                    </a>
+                    <!-- /ko -->
+                </div>
+            </div>
+        </div>
+        <!-- /ko -->
+
+        <!-- ko if: selected() === 'saved' -->
+        <div class="flex-item flex-item-grow add-block-container" role="tabpanel" data-bind="scrollable: true">
+            <block-selector params="{blockType: 'section', onSelect: $component.onBlockSelected}"></block-selector>
+        </div>
+        <!-- /ko -->
     </div>
 </div>

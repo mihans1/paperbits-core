@@ -1,33 +1,16 @@
-import { IContextCommandSet, IView, IViewManager } from "@paperbits/common/ui";
+import { IContextCommandSet, View, ViewManager } from "@paperbits/common/ui";
 import { DragSession } from "@paperbits/common/ui/draggables";
 import { WidgetContext } from "@paperbits/common/editing";
 import { SectionModel } from "./sectionModel";
 import { RowModel } from "../row/rowModel";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 
 
 export class SectionHandlers {
     constructor(
-        private readonly viewManager: IViewManager,
-        private readonly eventManager: IEventManager
+        private readonly viewManager: ViewManager,
+        private readonly eventManager: EventManager
     ) { }
-
-    public onDragOver(dragSession: DragSession): boolean {
-        return dragSession.type === "row";
-    }
-
-    public onDragDrop(dragSession: DragSession): void {
-        switch (dragSession.type) {
-            case "row":
-                dragSession.targetBinding.model.widgets.splice(dragSession.insertIndex, 0, dragSession.sourceModel);
-                break;
-
-            default:
-                throw new Error(`Unknown type: ${dragSession.type}`);
-        }
-        dragSession.targetBinding.applyChanges();
-        dragSession.sourceParentBinding.applyChanges();
-    }
 
     public getContextualEditor(context: WidgetContext): IContextCommandSet {
         const sectionContextualEditor: IContextCommandSet = {
@@ -67,32 +50,32 @@ export class SectionHandlers {
                     this.eventManager.dispatchEvent("onContentUpdate");
                 }
             },
-            selectionCommands: [{
+            selectCommands: [{
                 tooltip: "Edit section",
                 iconClass: "paperbits-edit-72",
                 position: "top right",
                 color: "#2b87da",
                 callback: () => this.viewManager.openWidgetEditor(context.binding)
             },
-            // {
-            //     tooltip: "Add to library",
-            //     iconClass: "paperbits-simple-add",
-            //     position: "top right",
-            //     color: "#2b87da",
-            //     callback: () => {
-            //         const view: IView = {
-            //             heading: "Add to library",
-            //             component: {
-            //                 name: "add-block-dialog",
-            //                 params: { sectionModel: context.model }
-            //             },
-            //             resize: "vertically horizontally"
-            //         };
+            {
+                tooltip: "Add to library",
+                iconClass: "paperbits-simple-add",
+                position: "top right",
+                color: "#2b87da",
+                callback: () => {
+                    const view: View = {
+                        heading: "Add to library",
+                        component: {
+                            name: "add-block-dialog",
+                            params: { blockModel: context.model, blockType: "section" }
+                        },
+                        resize: "vertically horizontally"
+                    };
 
-            //         this.viewManager.openViewAsPopup(view);
-            //     }
-            // }
-        ]
+                    this.viewManager.openViewAsPopup(view);
+                }
+            }
+            ]
         };
 
         if (context.model.widgets.length === 0) {

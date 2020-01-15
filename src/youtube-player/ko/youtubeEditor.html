@@ -1,7 +1,7 @@
-<fieldset class="form" data-bind="scrollable: {}">
+<fieldset class="form" data-bind="scrollable: true">
     <div class="form-group form-group-collapsible">
         <label class="form-label">
-            <a href="#" class="form-group-toggle" data-bind="collapse: '#sourceCollapse'"></a>
+            <a href="#" class="form-group-toggle" title="Toggle section" data-bind="collapse: '#sourceCollapse'"></a>
             <b>Source</b>
         </label>
         <div id="sourceCollapse" class="collapse form-group-collapse">
@@ -13,20 +13,7 @@
     </div>
     <div class="form-group form-group-collapsible">
         <label class="form-label">
-            <a href="#" class="form-group-toggle" data-bind="collapse: '#securityCollapse'"></a>
-            <b>Security</b>
-        </label>
-        <div id="securityCollapse" class="collapse form-group-collapse">
-            <label for="origin" class="form-label">Origin URL</label>
-            <div class="input-group">
-                <input type="url" id="origin" class="form-control" data-bind="textInput: origin" placeholder="http://example.com" maxlength="2000" />
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group form-group-collapsible">
-        <label class="form-label">
-            <a href="#" class="form-group-toggle" data-bind="collapse: '#miscellaneousCollapse'"></a>
+            <a href="#" class="form-group-toggle" title="Toggle section" data-bind="collapse: '#miscellaneousCollapse'"></a>
             <b>Miscellaneous</b>
         </label>
         <div id="miscellaneousCollapse" class="collapse form-group-collapse">

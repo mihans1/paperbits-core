@@ -1,8 +1,8 @@
 ﻿import template from "./dropbucket.html";
 import * as ko from "knockout";
 import * as Utils from "@paperbits/common/utils";
-import { IViewManager } from "@paperbits/common/ui";
-import { IEventManager, GlobalEventHandler } from "@paperbits/common/events";
+import { ViewManager } from "@paperbits/common/ui";
+import { EventManager, GlobalEventHandler } from "@paperbits/common/events";
 import { IMediaService, MediaContract } from "@paperbits/common/media";
 import { IContentDropHandler, IContentDescriptor, IDataTransfer } from "@paperbits/common/editing";
 import { DropBucketItem } from "./dropbucketItem";
@@ -12,18 +12,17 @@ import { IWidgetService } from "@paperbits/common/widgets";
 
 @Component({
     selector: "dropbucket",
-    template: template,
-    injectable: "dropbucket"
+    template: template
 })
 export class DropBucket {
     public droppedItems: ko.ObservableArray<DropBucketItem>;
 
     constructor(
         private readonly globalEventHandler: GlobalEventHandler,
-        private readonly eventManager: IEventManager,
+        private readonly eventManager: EventManager,
         private readonly mediaService: IMediaService,
         private readonly dropHandlers: IContentDropHandler[],
-        private readonly viewManager: IViewManager,
+        private readonly viewManager: ViewManager,
         private readonly widgetService: IWidgetService
     ) {
         this.onDragDrop = this.onDragDrop.bind(this);
@@ -192,7 +191,6 @@ export class DropBucket {
         this.droppedItems.remove(item);
 
         this.viewManager.beginDrag({
-            type: "widget",
             sourceModel: widgetModel,
             sourceBinding: widgetBinding
         });

@@ -2,19 +2,18 @@ import * as ko from "knockout";
 import * as Objects from "@paperbits/common/objects";
 import * as Utils from "@paperbits/common/utils";
 import template from "./cardEditor.html";
-import { IViewManager } from "@paperbits/common/ui";
+import { ViewManager } from "@paperbits/common/ui";
 import { WidgetEditor } from "@paperbits/common/widgets";
 import { StyleService } from "@paperbits/styles";
 import { Component, OnMounted, Param, Event } from "@paperbits/common/ko/decorators";
 import { CardModel } from "../cardModel";
 import { BackgroundStylePluginConfig, TypographyStylePluginConfig, ContainerStylePluginConfig } from "@paperbits/styles/contracts";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 
 
 @Component({
     selector: "card-editor",
-    template: template,
-    injectable: "cardEditor"
+    template: template
 })
 export class CardEditor implements WidgetEditor<CardModel> {
     public readonly background: ko.Observable<BackgroundStylePluginConfig>;
@@ -24,9 +23,9 @@ export class CardEditor implements WidgetEditor<CardModel> {
     public readonly containerConfig: ko.Observable<ContainerStylePluginConfig>;
 
     constructor(
-        private readonly viewManager: IViewManager,
+        private readonly viewManager: ViewManager,
         private readonly styleService: StyleService,
-        private readonly eventManager: IEventManager
+        private readonly eventManager: EventManager
     ) {
         this.appearanceStyles = ko.observableArray<any>();
         this.appearanceStyle = ko.observable<any>();

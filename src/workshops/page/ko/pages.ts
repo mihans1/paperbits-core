@@ -2,20 +2,17 @@
 import template from "./pages.html";
 import { IPageService } from "@paperbits/common/pages";
 import { Router } from "@paperbits/common/routing";
-import { IViewManager, IView } from "@paperbits/common/ui";
-import { Keys } from "@paperbits/common/keyboard";
+import { ViewManager, View } from "@paperbits/common/ui";
 import { Component, OnMounted } from "@paperbits/common/ko/decorators";
 import { PageItem } from "./pageItem";
+import { ChangeRateLimit } from "@paperbits/common/ko/consts";
 
 
 @Component({
     selector: "pages",
-    template: template,
-    injectable: "pagesWorkshop"
+    template: template
 })
 export class PagesWorkshop {
-    private searchTimeout: any;
-
     public readonly searchPattern: ko.Observable<string>;
     public readonly pages: ko.ObservableArray<PageItem>;
     public readonly working: ko.Observable<boolean>;
@@ -24,7 +21,7 @@ export class PagesWorkshop {
     constructor(
         private readonly pageService: IPageService,
         private readonly router: Router,
-        private readonly viewManager: IViewManager
+        private readonly viewManager: ViewManager
     ) {
         this.pages = ko.observableArray<PageItem>();
         this.selectedPage = ko.observable<PageItem>();
@@ -34,11 +31,14 @@ export class PagesWorkshop {
 
     @OnMounted()
     public async initialize(): Promise<void> {
-        this.searchPattern.subscribe(this.searchPages);
-        this.searchPages();
+        await this.searchPages();
+
+        this.searchPattern
+            .extend(ChangeRateLimit)
+            .subscribe(this.searchPages);
     }
 
-    private async launchSearch(searchPattern: string = ""): Promise<void> {
+    private async searchPages(searchPattern: string = ""): Promise<void> {
         this.working(true);
         this.pages([]);
 
@@ -46,18 +46,31 @@ export class PagesWorkshop {
         const pageItems = pages.map(page => new PageItem(page));
 
         this.pages(pageItems);
+
+        if (!this.selectedPage()) {
+            const currentPermalink = this.router.getPath();
+            const current = pageItems.find(item => item.permalink() === currentPermalink);
+
+            if (current) {
+                this.selectedPage(current);
+                current.isSelected(true);
+            }
+        }
         this.working(false);
     }
 
-    public async searchPages(searchPattern: string = ""): Promise<void> {
-        clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(() => this.launchSearch(searchPattern), 600);
-    }
 
     public selectPage(pageItem: PageItem): void {
-        this.selectedPage(pageItem);
+        const prev = this.selectedPage();
 
-        const view: IView = {
+        if (prev) {
+            prev.isSelected(false);
+        }
+
+        this.selectedPage(pageItem);
+        pageItem.isSelected(true);
+
+        const view: View = {
             heading: "Page",
             component: {
                 name: "page-details-workshop",
@@ -85,22 +98,5 @@ export class PagesWorkshop {
         this.selectPage(pageItem);
 
         this.working(false);
-    }
-
-    public async deleteSelectedPage(): Promise<void> {
-        // TODO: Show confirmation dialog according to mockup
-        this.viewManager.closeWorkshop("page-details-workshop");
-
-        await this.pageService.deletePage(this.selectedPage().toContract());
-        await this.searchPages();
-
-        this.router.navigateTo("/");
-    }
-
-    public onKeyDown(item: PageItem, event: KeyboardEvent): boolean {
-        if (event.keyCode === Keys.Delete) {
-            this.deleteSelectedPage();
-        }
-        return true;
     }
 }

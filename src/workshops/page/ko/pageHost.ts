@@ -1,15 +1,14 @@
 import * as ko from "knockout";
 import { LayoutViewModelBinder, LayoutViewModel } from "../../../layout/ko";
-import { Component, OnMounted } from "@paperbits/common/ko/decorators";
+import { Component, OnMounted, OnDestroyed, Param } from "@paperbits/common/ko/decorators";
 import { Router, Route } from "@paperbits/common/routing";
-import { IEventManager } from "@paperbits/common/events";
-import { IViewManager, ViewManagerMode } from "@paperbits/common/ui";
+import { EventManager } from "@paperbits/common/events";
+import { ViewManager, ViewManagerMode } from "@paperbits/common/ui";
 
 
 @Component({
-    selector: "content-host",
-    template: "<!-- ko if: layoutViewModel --><!-- ko widget: layoutViewModel, grid: {} --><!-- /ko --><!-- /ko -->",
-    injectable: "pageHost"
+    selector: "page-host",
+    template: "<!-- ko if: layoutViewModel --><!-- ko widget: layoutViewModel, grid: {} --><!-- /ko --><!-- /ko -->"
 })
 export class PageHost {
     public readonly layoutViewModel: ko.Observable<LayoutViewModel>;
@@ -17,18 +16,23 @@ export class PageHost {
     constructor(
         private readonly layoutViewModelBinder: LayoutViewModelBinder,
         private readonly router: Router,
-        private readonly eventManager: IEventManager,
-        private readonly viewManager: IViewManager
+        private readonly eventManager: EventManager,
+        private readonly viewManager: ViewManager
     ) {
         this.layoutViewModel = ko.observable();
-        this.router.addRouteChangeListener(this.onRouteChange.bind(this));
-        this.eventManager.addEventListener("onDataPush", () => this.onDataPush());
-        this.eventManager.addEventListener("onLocaleChange", () => this.onLocaleUpdate());
+        this.pageKey = ko.observable();
     }
+
+    
+    @Param()
+    public pageKey: ko.Observable<string>;
 
     @OnMounted()
     public async initialize(): Promise<void> {
-        this.refreshContent();
+        await this.refreshContent();
+
+        this.router.addRouteChangeListener(this.onRouteChange);
+        this.eventManager.addEventListener("onDataPush", () => this.onDataPush());
     }
 
     /**
@@ -62,6 +66,7 @@ export class PageHost {
         await this.refreshContent();
     }
 
+    @OnDestroyed()
     public dispose(): void {
         this.router.removeRouteChangeListener(this.onRouteChange);
     }

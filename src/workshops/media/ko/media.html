@@ -1,8 +1,12 @@
-<div class="flex-container flex-container-column fit">
+<div class="flex flex-column fit">
     <fieldset class="flex-item form">
         <div class="form-group">
-            <input class="form-control" type="search" data-bind="textInput: searchPattern, valueUpdate: 'keyup'" placeholder="Search media..."
-            />
+            <input class="form-control" type="search" role="searchbox"
+                data-bind="textInput: searchPattern, valueUpdate: 'keyup', focus: true" placeholder="Search media..."
+                aria-label="Search media" aria-controls="searchResult" />
+            <p id="searchResult" class="text-hide" role="region" aria-live="polite"
+                data-bind="text: `Media files found: ${mediaItems().length}`">
+            </p>
         </div>
     </fieldset>
 
@@ -24,16 +28,24 @@
     <spinner></spinner>
     <!-- /ko -->
 
-    <ul class="flex-item flex-item-grow list" data-bind="foreach: { data: mediaItems, as: 'media' }, scrollable: {}">
-        <li tabindex="0" class="list-item list-item-image" data-bind="css: { selected: media.hasFocus }, dragsource: { sticky: true, payload: $data, ondragstart: $parent.onDragStart, ondragend: $parent.onDragEnd }">
-            <div class="thumbnail" href="#" data-bind="click: $component.selectMedia, hasFocus: media.hasFocus, style: { 'background-image': 'url('+media.thumbnailUrl()+')' }, attr: { title: media.fileName() }, event: { keydown: $component.onKeyDown }"></div>
-        </li>
-    </ul>
+    <div class="flex-item flex-item-grow list" role="list"
+        data-bind="foreach: { data: mediaItems, as: 'media' }, scrollable: true">
+        <a href="#" role="listitem" class="list-item list-item-image"
+            data-bind="click: $component.selectMedia, css: { selected: media == $component.selectedMediaItem() }, attr: { 'aria-label': media.fileName() }, dragsource: { sticky: true, sourceData: $data, ondragstart: $parent.onDragStart, ondragend: $parent.onDragEnd }">
+            <span class="thumbnail"
+                data-bind="style: { 'background-image': 'url('+media.thumbnailUrl()+')' }, attr: { title: media.fileName() }, event: { keydown: $component.onKeyDown }">
+            </span>
+        </a>
+    </div>
 
     <div class="flex-item btn-group">
         <button class="btn" data-bind="click: uploadMedia">
             <i class="paperbits-icon paperbits-square-upload"></i>
             Upload file
+        </button>
+        <button class="btn" data-bind="click: linkMedia">
+            <i class="paperbits-icon paperbits-link-69-2"></i>
+            Link file
         </button>
     </div>
 </div>

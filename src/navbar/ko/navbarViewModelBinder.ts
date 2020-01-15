@@ -1,19 +1,19 @@
 import { NavbarViewModel } from "./navbarViewModel";
 import { NavbarItemViewModel } from "./navbarItemViewModel";
 import { ViewModelBinder } from "@paperbits/common/widgets";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { NavigationItemContract, NavigationItemModel, NavigationEvents } from "@paperbits/common/navigation";
 import { NavbarModel } from "../navbarModel";
 import { NavbarModelBinder } from "../navbarModelBinder";
-import { IStyleCompiler } from "@paperbits/common/styles/IStyleCompiler";
+import { StyleCompiler } from "@paperbits/common/styles/styleCompiler";
 import { Bag } from "@paperbits/common";
 
 
 export class NavbarViewModelBinder implements ViewModelBinder<NavbarModel, NavbarViewModel> {
     constructor(
-        private readonly eventManager: IEventManager,
+        private readonly eventManager: EventManager,
         private readonly navbarModelBinder: NavbarModelBinder,
-        private readonly styleCompiler: IStyleCompiler
+        private readonly styleCompiler: StyleCompiler
     ) { }
 
     private navbarItemModelToNavbarItemViewModel(navbarItemModel: NavigationItemModel): NavbarItemViewModel {
@@ -28,7 +28,7 @@ export class NavbarViewModelBinder implements ViewModelBinder<NavbarModel, Navba
             });
         }
         else {
-            navbarItemViewModel.url(navbarItemModel.url);
+            navbarItemViewModel.url(navbarItemModel.targetUrl);
             navbarItemViewModel.isActive(navbarItemModel.isActive);
         }
 
@@ -42,9 +42,8 @@ export class NavbarViewModelBinder implements ViewModelBinder<NavbarModel, Navba
         if (!viewModel) {
             viewModel = new NavbarViewModel();
 
-            onUpdate = async (updatedRootContract: NavigationItemContract): Promise<void> => {
-                if (updatedRootContract.key === model.rootKey) {
-                    const updatedRootModel = await this.navbarModelBinder.navigationItemToNavbarItemModel(updatedRootContract);
+            onUpdate = async (updatedRootModel: NavigationItemModel): Promise<void> => {
+                if (updatedRootModel.key === model.rootKey) {
                     viewModel.navigationRoot(this.navbarItemModelToNavbarItemViewModel(updatedRootModel));
                 }
             };
@@ -67,9 +66,8 @@ export class NavbarViewModelBinder implements ViewModelBinder<NavbarModel, Navba
             displayName: "Navigation bar",
             readonly: bindingContext ? bindingContext.readonly : false,
             model: model,
-            editor: "navbar-editor",
-            applyChanges: () => {
-                this.modelToViewModel(model, viewModel, bindingContext);
+            applyChanges: async () => {
+                await this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");
             },
             onCreate: () => {

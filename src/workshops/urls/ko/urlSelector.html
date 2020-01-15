@@ -2,14 +2,13 @@
 <spinner></spinner>
 <!--/ko-->
 
-<div class="flex-container flex-container-column list-container">
-    <ul class="flex-item flex-item-grow list" data-bind="foreach: urls, scrollable: {}">
-        <li class="list-item" data-bind="css: { selected: hasFocus }, click: $component.selectUrl, event: { keydown: $component.keydown }, attr: { title: title }">
+<div class="flex flex-column list-container">
+    <div class="flex-item flex-item-grow list" role="list" data-bind="foreach: urls, scrollable: true">
+        <a href="#" role="listitem" class="list-item" data-bind="css: { selected: hasFocus }, click: $component.selectUrl, event: { keydown: $component.keydown }, attr: { title: title }, selectItem: hasFocus">
             <i class="paperbits-icon paperbits-link-69-2"></i>
             <span class="list-item-label" data-bind="text: title"></span>
-        </li>
-    </ul>
-    
+        </a>
+    </div>
     <div class="form">
         <div class="input-group">
             <input type="text" class="form-control" data-bind="textInput: $component.uri" placeholder="e.g. https://paperbits.io" maxlength="256"
@@ -20,7 +19,7 @@
         </button>
         <!--ko if: selectedUrl()-->
         <button class="btn" data-bind="click: $component.deleteUrl">
-            <i class="paperbits-icon paperbits-simple-remove"></i> Add
+            <i class="paperbits-icon paperbits-simple-remove"></i> Delete
         </button>
         <!--/ko-->
     </div>

@@ -4,24 +4,23 @@ import { StyleService } from "@paperbits/styles";
 import { HyperlinkModel } from "@paperbits/common/permalinks";
 import { ButtonModel } from "../buttonModel";
 import { Component, OnMounted, Param, Event } from "@paperbits/common/ko/decorators";
+import { LocalStyles } from "@paperbits/common/styles";
+
 
 @Component({
-    selector: "paperbits-button-editor",
-    template: template,
-    injectable: "buttonEditor"
+    selector: "button-editor",
+    template: template
 })
 export class ButtonEditor {
     public readonly label: ko.Observable<string>;
     public readonly hyperlink: ko.Observable<HyperlinkModel>;
     public readonly hyperlinkTitle: ko.Observable<string>;
-    public readonly appearanceStyles: ko.ObservableArray<any>;
-    public readonly appearanceStyle: ko.Observable<any>;
+    public readonly appearanceStyle: ko.Observable<LocalStyles>;
     public readonly sizeStyles: ko.ObservableArray<any>;
     public readonly sizeStyle: ko.Observable<any>;
 
     constructor(private readonly styleService: StyleService) {
         this.label = ko.observable<string>();
-        this.appearanceStyles = ko.observableArray<any>();
         this.appearanceStyle = ko.observable<any>();
         this.sizeStyles = ko.observableArray<any>();
         this.sizeStyle = ko.observable<any>();
@@ -38,15 +37,14 @@ export class ButtonEditor {
     @OnMounted()
     public async initialize(): Promise<void> {
         const buttonVariations = await this.styleService.getComponentVariations("button");
-
-        this.appearanceStyles(buttonVariations.filter(x => x.category === "appearance"));
         this.sizeStyles(buttonVariations.filter(x => x.category === "size").concat({ displayName: "Default", key: undefined }));
 
         this.label(this.model.label);
 
         if (this.model.styles) {
+            const selectedAppearence = buttonVariations.find(x => x.category === "appearance" && x.key === this.model.styles.appearance);
             this.sizeStyle(this.model.styles.size);
-            this.appearanceStyle(this.model.styles.appearance);
+            this.appearanceStyle(selectedAppearence);
         }
 
         this.hyperlink(this.model.hyperlink);
@@ -68,11 +66,22 @@ export class ButtonEditor {
         }
     }
 
+    public onVariationSelected(snippet: LocalStyles): void {
+        if (snippet) {
+            this.appearanceStyle(snippet);
+        }
+    }
+
+    public onRoleSelect(roles: string[]): void {
+        this.model.roles = roles;
+        this.applyChanges();
+    }
+
     private applyChanges(): void {
         this.model.label = this.label();
         this.model.hyperlink = this.hyperlink();
         this.model.styles = {
-            appearance: this.appearanceStyle(),
+            appearance: this.appearanceStyle().key,
             size: this.sizeStyle()
         };
 

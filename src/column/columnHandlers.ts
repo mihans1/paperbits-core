@@ -1,26 +1,18 @@
 import { IWidgetHandler, WidgetContext } from "@paperbits/common/editing";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { DragSession } from "@paperbits/common/ui/draggables";
-import { IContextCommandSet, IViewManager } from "@paperbits/common/ui";
+import { IContextCommandSet, ViewManager } from "@paperbits/common/ui";
 import { WidgetModel } from "@paperbits/common/widgets";
 
 
 export class ColumnHandlers implements IWidgetHandler {
     constructor(
-        private readonly viewManager: IViewManager,
-        private readonly eventManager: IEventManager
+        private readonly viewManager: ViewManager,
+        private readonly eventManager: EventManager
     ) { }
 
-    public onDragOver(dragSession: DragSession): boolean {
-        return dragSession.type === "widget";
-    }
-
-    public onDragDrop(dragSession: DragSession): void {
-        if (dragSession.type === "widget") {
-            dragSession.targetBinding.model.widgets.splice(dragSession.insertIndex, 0, dragSession.sourceModel);
-        }
-        dragSession.targetBinding.applyChanges();
-        dragSession.sourceParentBinding.applyChanges();
+    public canAccept(dragSession: DragSession): boolean {
+        return !["section", "row", "column"].includes(dragSession.sourceBinding.name);
     }
 
     public getContextualEditor(context: WidgetContext): IContextCommandSet {
@@ -28,7 +20,7 @@ export class ColumnHandlers implements IWidgetHandler {
             color: "#9C27B0",
             hoverCommand: null,
             deleteCommand: null,
-            selectionCommands: [{
+            selectCommands: [{
                 tooltip: "Edit column",
                 iconClass: "paperbits-edit-72",
                 position: "top right",

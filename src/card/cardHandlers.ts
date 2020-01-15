@@ -1,30 +1,22 @@
 import { TextblockModel } from "./../textblock/textblockModel";
 import { CardModel } from "./cardModel";
 import { IWidgetOrder, IWidgetHandler, WidgetContext } from "@paperbits/common/editing";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { DragSession } from "@paperbits/common/ui/draggables";
-import { IContextCommandSet, IViewManager } from "@paperbits/common/ui";
+import { IContextCommandSet, ViewManager } from "@paperbits/common/ui";
 import { WidgetModel } from "@paperbits/common/widgets";
 
 
 export class CardHandlers implements IWidgetHandler {
     constructor(
-        private readonly viewManager: IViewManager,
-        private readonly eventManager: IEventManager
+        private readonly viewManager: ViewManager,
+        private readonly eventManager: EventManager
     ) { }
 
-    public onDragOver(dragSession: DragSession): boolean {
-        return dragSession.type === "widget";
+    public canAccept(dragSession: DragSession): boolean {
+        return !["section", "row", "column", "card"].includes(dragSession.sourceBinding.name);
     }
-
-    public onDragDrop(dragSession: DragSession): void {
-        if (dragSession.type === "widget") {
-            dragSession.targetBinding.model.widgets.splice(dragSession.insertIndex, 0, dragSession.sourceModel);
-        }
-        dragSession.targetBinding.applyChanges();
-        dragSession.sourceParentBinding.applyChanges();
-    }
-
+    
     public getContextualEditor(context: WidgetContext): IContextCommandSet {
         const cardContextualEditor: IContextCommandSet = {
             color: "#4c5866",
@@ -39,7 +31,7 @@ export class CardHandlers implements IWidgetHandler {
                     this.eventManager.dispatchEvent("onContentUpdate");
                 }
             },
-            selectionCommands: [{
+            selectCommands: [{
                 tooltip: "Edit card",
                 iconClass: "paperbits-edit-72",
                 position: "top right",

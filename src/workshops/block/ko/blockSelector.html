@@ -2,12 +2,20 @@
 <spinner></spinner>
 <!--/ko-->
 
-<div class="flex-container flex-container-column list-container">
-    <ul class="list" data-bind="foreach: blocks, scrollable: {}">
-        <li class="list-item list-item-large">
-            <a href="#" data-bind="hasFocus: hasFocus, click: $component.selectBlock">
-                <span data-bind="text: title"></span>
-            </a>
+<div class="flex flex-column">
+    <!-- ko if: blocks().length === 0 -->
+    <span class="list-empty">It seems that your library is empty.</span>
+    <!-- /ko -->
+
+    <!-- ko if: blocks().length > 0 -->
+    <ul class="flex-item flex-item-grow list">
+        <!-- ko foreach: { data: blocks, as: 'block'  } -->
+        <li class="list-item zoom-selector-item" data-bind="css: { selected: block.hasFocus }, click: $component.selectBlock"> 
+            <div class="zoom-item">
+                <widget-container params="{ widgetData: block.widget }"></widget-container>
+            </div>
         </li>
+        <!-- /ko -->
     </ul>
+    <!-- /ko -->
 </div>

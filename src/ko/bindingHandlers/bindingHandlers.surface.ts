@@ -1,10 +1,10 @@
 ﻿import * as ko from "knockout";
 import * as Objects from "@paperbits/common";
-import { IView } from "@paperbits/common/ui";
+import { View } from "@paperbits/common/ui";
 import "@paperbits/common/extensions";
 
 ko.bindingHandlers["surface"] = {
-    init(element: HTMLElement, valueAccessor?: () => IView) {
+    init(element: HTMLElement, valueAccessor?: () => View) {
         const view = valueAccessor();
         const settingsString = localStorage["settings"];
 
@@ -43,7 +43,7 @@ ko.bindingHandlers["surface"] = {
         ko.applyBindingsToNode(element, {
             dragsource: {
                 sticky: false,
-                payload: "surface",
+                sourceData: "surface",
                 inertia: true,
                 preventDragging: (clickedElement: HTMLElement) => {
                     return clickedElement.closest("a, .form, .btn, .toolbox-btn, .toolbox-dropdown .cropbox") !== null;

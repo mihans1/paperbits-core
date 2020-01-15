@@ -22,9 +22,7 @@ export class LayoutModelBinder {
 
     public async contractToModel(contract: LayoutContract, bindingContext?: Bag<any>): Promise<LayoutModel> {
         const layoutModel = new LayoutModel();
-        layoutModel.title = contract.title;
-        layoutModel.description = contract.description;
-        layoutModel.permalinkTemplate = contract.permalinkTemplate;
+        layoutModel.key = contract.key;
 
         const layoutContent = await this.layoutService.getLayoutContent(contract.key);
 

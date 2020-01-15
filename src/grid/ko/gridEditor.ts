@@ -1,11 +1,11 @@
 import * as _ from "lodash";
 import * as Utils from "@paperbits/common/utils";
-import { IViewManager, ViewManagerMode, IHighlightConfig, IContextCommandSet as IContextCommandSet } from "@paperbits/common/ui";
-import { IWidgetBinding, GridHelper, WidgetContext } from "@paperbits/common/editing";
+import { ViewManager, ViewManagerMode, IHighlightConfig, IContextCommandSet as IContextCommandSet } from "@paperbits/common/ui";
+import { IWidgetBinding, GridHelper, WidgetContext, WidgetStackItem } from "@paperbits/common/editing";
 import { Keys } from "@paperbits/common/keyboard";
 import { IWidgetService } from "@paperbits/common/widgets";
 import { Router } from "@paperbits/common/routing";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 
 export class GridEditor {
     private activeHighlightedElement: HTMLElement;
@@ -19,28 +19,30 @@ export class GridEditor {
 
 
     constructor(
-        private readonly viewManager: IViewManager,
+        private readonly viewManager: ViewManager,
         private readonly widgetService: IWidgetService,
         private readonly router: Router,
-        private readonly eventManager: IEventManager
+        private readonly eventManager: EventManager
     ) {
         this.rerenderEditors = this.rerenderEditors.bind(this);
         this.onPointerDown = this.onPointerDown.bind(this);
         this.attach = this.attach.bind(this);
         this.detach = this.detach.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.onPointerMove = this.onPointerMove.bind(this);
+        this.onWindowScroll = this.onWindowScroll.bind(this);
 
         this.actives = {};
     }
 
     private isModelBeingEdited(binding: IWidgetBinding<any>): boolean {
-        const session = this.viewManager.getOpenView();
+        const view = this.viewManager.getOpenView();
 
-        if (!session) {
+        if (!view) {
             return false;
         }
 
-        if (session.component.name !== binding.editor) {
+        if (view.component.name !== binding.editor) {
             return false;
         }
 
@@ -94,7 +96,7 @@ export class GridEditor {
         }
 
         contextualEditor.element = element;
-        contextualEditor.selectionCommands = contextualEditor.selectionCommands || null;
+        contextualEditor.selectCommands = contextualEditor.selectCommands || null;
         contextualEditor.hoverCommand = contextualEditor.hoverCommand || null;
         contextualEditor.deleteCommand = contextualEditor.deleteCommand || null;
 
@@ -128,7 +130,7 @@ export class GridEditor {
             return;
         }
 
-        if (event.button !== 0) {
+        if (event.which !== 1) {
             return;
         }
 
@@ -138,17 +140,8 @@ export class GridEditor {
             return;
         }
 
-        const elements = this.getUnderlyingElements();
-        const roots = GridHelper.getComponentRoots(elements);
-        const element = roots.find(element => GridHelper.getWidgetBinding(element) !== null);
-
-        if (!element) {
-            this.viewManager.closeView();
-            return;
-        }
-
+        const element = this.activeHighlightedElement;
         const bindings = GridHelper.getParentWidgetBindings(element);
-
         const windgetIsInContent = bindings.some(x => x.name === "page" || x.name === "email-layout");
 
         let layoutEditing = false;
@@ -159,12 +152,11 @@ export class GridEditor {
             layoutEditing = metadata["routeKind"] === "layout";
         }
 
-        if ((!windgetIsInContent && !layoutEditing && this.viewManager.getHost().name === "content-host")) {
+        if ((!windgetIsInContent && !layoutEditing && this.viewManager.getHost().name === "page-host")) {
             event.preventDefault();
             event.stopPropagation();
 
             this.eventManager.dispatchEvent("InactiveLayoutHint");
-
             return;
         }
 
@@ -192,6 +184,12 @@ export class GridEditor {
             }
         }
         else {
+            event.preventDefault(); // To prevent document selection.
+
+            if (element["dragSource"]) { // TODO: Maybe make part of Binding?
+                element["dragSource"].beginDrag(element, this.pointerX, this.pointerY);
+            }
+
             const contextualEditor = this.getContextualEditor(element, "top");
 
             if (!contextualEditor) {
@@ -199,7 +197,7 @@ export class GridEditor {
             }
 
             const config: IHighlightConfig = {
-                element: element,
+                element: this.activeHighlightedElement,
                 text: widgetBinding["displayName"],
                 color: contextualEditor.color
             };
@@ -228,12 +226,12 @@ export class GridEditor {
         switch (this.viewManager.mode) {
             case ViewManagerMode.selecting:
             case ViewManagerMode.selected:
+            case ViewManagerMode.configure:
                 this.renderHighlightedElements();
                 break;
 
             case ViewManagerMode.dragging:
                 this.renderDropHandlers();
-
                 break;
         }
     }
@@ -247,7 +245,27 @@ export class GridEditor {
 
         const elements = this.getUnderlyingElements();
 
-        if (elements.some(element => element.classList.contains("dragged-origin"))) {
+        if (elements.length === 0) {
+            return;
+        }
+
+        const stack = GridHelper.getWidgetStack(elements[1]);
+
+        const acceptingParentElement = stack.find(x => {
+            if (!x.binding.handler) {
+                return false;
+            }
+
+            const handler = this.widgetService.getWidgetHandler(x.binding.handler);
+
+            if (handler && handler.canAccept && handler.canAccept(dragSession)) {
+                return true;
+            }
+
+            return false;
+        });
+
+        if (!acceptingParentElement || elements.some(element => element.classList.contains("dragged-origin"))) {
             delete dragSession.targetElement;
             delete dragSession.targetBinding;
 
@@ -255,121 +273,81 @@ export class GridEditor {
             return;
         }
 
-        const acceptorElement = elements
-            .filter(element => dragSession.sourceElement !== element)
-            .map(element => {
-                const binding = GridHelper.getWidgetBinding(element);
+        dragSession.targetElement = acceptingParentElement.element;
+        dragSession.targetBinding = GridHelper.getWidgetBinding(acceptingParentElement.element);
 
-                if (binding && binding.handler) {
-                    const handler = this.widgetService.getWidgetHandler(binding.handler);
+        const siblingElement: WidgetStackItem = stack.find(x => x.element.parentElement === acceptingParentElement.element);
 
-                    if (binding && handler.onDragOver && handler.onDragOver(dragSession)) {
-                        return element;
-                    }
-                }
-
-                return null;
-            })
-            .find(x => x !== null);
-
-        if (acceptorElement) {
-            const childNodes = Array.prototype.slice
-                .call(acceptorElement.childNodes)
-                .filter(node =>
-                    node.nodeName !== "#comment" &&
-                    node !== dragSession.sourceElement &&
-                    GridHelper.getModel(node) !== null);
-
-            const intersection = _.intersection(childNodes, elements);
-
-            dragSession.targetElement = acceptorElement;
-            dragSession.targetBinding = GridHelper.getWidgetBinding(acceptorElement);
-
-            let hoveredElement = acceptorElement;
-
+        if (siblingElement) {
+            const quadrant = Utils.pointerToClientQuadrant(this.pointerX, this.pointerY, siblingElement.element);
             const sourceElementFlow = dragSession.sourceBinding.flow || "inline";
 
-            const quadrant = Utils.pointerToClientQuadrant(this.pointerX, this.pointerY, hoveredElement);
+            dragSession.insertIndex = acceptingParentElement.binding.model.widgets.indexOf(siblingElement.binding.model);
+            const hoveredElementFlow = siblingElement.binding.flow || "inline";
 
-            if (intersection.length > 0) {
-                hoveredElement = intersection[0];
-
-                dragSession.insertIndex = childNodes.indexOf(hoveredElement);
-
-                const hoveredElementBinding = GridHelper.getWidgetBinding(hoveredElement);
-
-                const hoveredElementFlow = hoveredElementBinding.flow || "inline";
-
-                if (sourceElementFlow === "inline" && hoveredElementFlow === "inline") {
-                    if (quadrant.horizontal === "right") {
-                        dragSession.insertIndex++;
-                    }
-
-                    this.viewManager.setSplitter({
-                        element: hoveredElement,
-                        side: quadrant.horizontal,
-                        where: "outside"
-                    });
+            if (sourceElementFlow === "inline" && hoveredElementFlow === "inline") {
+                if (quadrant.horizontal === "right") {
+                    dragSession.insertIndex++;
                 }
-                else {
-                    if (quadrant.vertical === "bottom") {
-                        dragSession.insertIndex++;
-                    }
 
-                    this.viewManager.setSplitter({
-                        element: hoveredElement,
-                        side: quadrant.vertical,
-                        where: "outside"
-                    });
-                }
+                this.viewManager.setSplitter({
+                    element: siblingElement.element,
+                    side: quadrant.horizontal,
+                    where: "outside"
+                });
             }
             else {
-                const hoveredElementBinding = GridHelper.getWidgetBinding(hoveredElement);
 
-                if (hoveredElementBinding.model.widgets.length === 0) {
-                    dragSession.insertIndex = 0;
-
-                    this.viewManager.setSplitter({
-                        element: hoveredElement,
-                        side: quadrant.vertical,
-                        where: "inside"
-                    });
-
-                    return;
+                if (quadrant.vertical === "bottom") {
+                    dragSession.insertIndex++;
                 }
-                else {
-                    const children = Array.prototype.slice.call(hoveredElement.children);
 
-                    if (quadrant.vertical === "top") {
-                        dragSession.insertIndex = 0;
-
-                        const child = children[0];
-
-                        this.viewManager.setSplitter({
-                            element: child,
-                            side: "top",
-                            where: "outside"
-                        });
-                    }
-                    else {
-                        dragSession.insertIndex = children.length - 1;
-
-                        const child = children[dragSession.insertIndex];
-
-                        this.viewManager.setSplitter({
-                            element: child,
-                            side: "bottom",
-                            where: "outside"
-                        });
-                    }
-                }
+                this.viewManager.setSplitter({
+                    element: siblingElement.element,
+                    side: quadrant.vertical,
+                    where: "outside"
+                });
             }
         }
         else {
-            delete dragSession.targetElement;
-            delete dragSession.targetBinding;
+            const quadrant = Utils.pointerToClientQuadrant(this.pointerX, this.pointerY, acceptingParentElement.element);
 
-            this.viewManager.setSplitter(null);
+            if (acceptingParentElement.binding.model.widgets.length === 0) {
+                dragSession.insertIndex = 0;
+
+                this.viewManager.setSplitter({
+                    element: acceptingParentElement.element,
+                    side: quadrant.vertical,
+                    where: "inside"
+                });
+
+                return;
+            }
+            else {
+                const children = Array.prototype.slice.call(acceptingParentElement.element.children);
+
+                if (quadrant.vertical === "top") {
+                    dragSession.insertIndex = 0;
+
+                    const child = children[0];
+
+                    this.viewManager.setSplitter({
+                        element: child,
+                        side: "top",
+                        where: "outside"
+                    });
+                }
+                else {
+                    dragSession.insertIndex = children.length;
+                    const child = children[dragSession.insertIndex];
+
+                    this.viewManager.setSplitter({
+                        element: child,
+                        side: "bottom",
+                        where: "outside"
+                    });
+                }
+            }
         }
     }
 
@@ -403,11 +381,20 @@ export class GridEditor {
     }
 
     private getUnderlyingElements(): HTMLElement[] {
-        return Utils.elementsFromPoint(this.ownerDocument, this.pointerX, this.pointerY);
+        const elements = Utils.elementsFromPoint(this.ownerDocument, this.pointerX, this.pointerY);
+
+        const index = elements.findIndex(x => x.classList.contains("backdrop"));
+
+        if (index >= 0) {
+            elements.splice(index);
+        }
+
+        return elements;
     }
 
     private renderHighlightedElements(): void {
-        if (this.scrolling || (this.viewManager.mode !== ViewManagerMode.selecting && this.viewManager.mode !== ViewManagerMode.selected)) {
+        if (this.scrolling) {
+            // || (this.viewManager.mode !== ViewManagerMode.selecting && this.viewManager.mode !== ViewManagerMode.selected)) {
             return;
         }
 
@@ -460,7 +447,7 @@ export class GridEditor {
                     this.viewManager.clearContextualEditors();
                 },
             },
-            selectionCommands: [{
+            selectCommands: context.binding.editor && context.binding.applyChanges && [{
                 tooltip: "Edit widget",
                 iconClass: "paperbits-edit-72",
                 position: "top right",
@@ -531,16 +518,16 @@ export class GridEditor {
 
     public attach(ownerDocument: Document): void {
         this.ownerDocument = ownerDocument;
-        // Firefox doesn't fire "mousemove" events by some reason
-        this.ownerDocument.addEventListener("mousemove", this.onPointerMove.bind(this), true);
-        this.ownerDocument.addEventListener("scroll", this.onWindowScroll.bind(this));
+        // Firefox doesn't fire "pointermove" events by some reason
+        this.ownerDocument.addEventListener("mousemove", this.onPointerMove, true);
+        this.ownerDocument.addEventListener("scroll", this.onWindowScroll);
         this.ownerDocument.addEventListener("mousedown", this.onPointerDown, true);
         this.ownerDocument.addEventListener("keydown", this.onKeyDown);
     }
 
     public detach(): void {
-        this.ownerDocument.removeEventListener("mousemove", this.onPointerMove.bind(this), true);
-        this.ownerDocument.removeEventListener("scroll", this.onWindowScroll.bind(this));
+        this.ownerDocument.removeEventListener("mousemove", this.onPointerMove, true);
+        this.ownerDocument.removeEventListener("scroll", this.onWindowScroll);
         this.ownerDocument.removeEventListener("mousedown", this.onPointerDown, true);
         this.ownerDocument.removeEventListener("keydown", this.onKeyDown);
     }

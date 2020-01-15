@@ -1,22 +1,24 @@
 import { Button } from "./buttonViewModel";
 import { ViewModelBinder } from "@paperbits/common/widgets";
 import { ButtonModel } from "../buttonModel";
-import { IEventManager } from "@paperbits/common/events";
-import { IStyleCompiler } from "@paperbits/common/styles";
+import { EventManager } from "@paperbits/common/events";
+import { StyleCompiler } from "@paperbits/common/styles";
+import { Bag } from "@paperbits/common";
 
 export class ButtonViewModelBinder implements ViewModelBinder<ButtonModel, Button>  {
     constructor(
-        private readonly eventManager: IEventManager,
-        private readonly styleCompiler: IStyleCompiler
+        private readonly eventManager: EventManager,
+        private readonly styleCompiler: StyleCompiler
     ) { }
 
-    public async modelToViewModel(model: ButtonModel, viewModel?: Button): Promise<Button> {
+    public async modelToViewModel(model: ButtonModel, viewModel?: Button, bindingContext?: Bag<any>): Promise<Button> {
         if (!viewModel) {
             viewModel = new Button();
         }
 
         viewModel.label(model.label);
         viewModel.hyperlink(model.hyperlink);
+        viewModel.roles(model.roles);
 
         if (model.styles) {
             viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles));
@@ -24,12 +26,12 @@ export class ButtonViewModelBinder implements ViewModelBinder<ButtonModel, Butto
 
         viewModel["widgetBinding"] = {
             displayName: "Button",
+            readonly: bindingContext ? bindingContext.readonly : false,
             model: model,
             flow: "inline",
-            editor: "paperbits-button-editor",
-            applyChanges: (changes) => {
-                Object.assign(model, changes);
-                this.modelToViewModel(model, viewModel);
+            editor: "button-editor",
+            applyChanges: async () => {
+                await this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");
             }
         };

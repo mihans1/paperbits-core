@@ -6,12 +6,15 @@ import { ISiteService } from "@paperbits/common/sites";
 import { SitemapBuilder } from "./sitemapBuilder";
 import { Logger } from "@paperbits/common/logging";
 import { ILocaleService } from "@paperbits/common/localization";
+import { IMediaService } from "@paperbits/common/media";
+import { SearchIndexBuilder } from "./searchIndexBuilder";
 
 
 export class PagePublisher implements IPublisher {
     constructor(
         private readonly pageService: IPageService,
         private readonly siteService: ISiteService,
+        private readonly mediaService: IMediaService,
         private readonly outputBlobStorage: IBlobStorage,
         private readonly htmlPagePublisher: HtmlPagePublisher,
         private readonly localeService: ILocaleService,
@@ -22,11 +25,10 @@ export class PagePublisher implements IPublisher {
         this.logger.traceEvent(`Publishing page ${page.title}...`);
 
         const htmlContent = await this.htmlPagePublisher.renderHtml(page);
-        return "<!DOCTYPE html>" + htmlContent;
+        return htmlContent;
     }
 
-    private async renderAndUpload(settings: any, page: PageContract, locale: string): Promise<void> {
-
+    private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder): Promise<void> {
         const htmlPage: HtmlPage = {
             title: [page.title, settings.site.title].join(" - "),
             description: page.description || settings.site.description,
@@ -43,7 +45,23 @@ export class PagePublisher implements IPublisher {
             }
         };
 
+        if (settings.site.faviconSourceKey) {
+            try {
+                const media = await this.mediaService.getMediaByKey(settings.site.faviconSourceKey);
+
+                if (media) {
+                    htmlPage.faviconPermalink = media.permalink;
+                }
+            }
+            catch (error) {
+                this.logger.traceError(error, "Could not retrieve favicon.");
+            }
+        }
+
+        // settings.site.faviconSourceKey
         const htmlContent = await this.renderPage(htmlPage);
+
+        indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
 
         let permalink = page.permalink;
 
@@ -52,7 +70,12 @@ export class PagePublisher implements IPublisher {
 
         if (!isHtmlFile) {
             /* if filename has no *.html extension we publish it to a dedicated folder with index.html */
-            permalink = `${permalink}/index.html`;
+
+            if (!permalink.endsWith("/")) {
+                permalink += "/";
+            }
+
+            permalink = `${permalink}index.html`;
         }
 
         const localePrefix = locale ? `/${locale}` : "";
@@ -65,6 +88,17 @@ export class PagePublisher implements IPublisher {
     public async publish(): Promise<void> {
         const locales = await this.localeService.getLocales();
         // const localizationEnabled = locales.length > 1;
+        try {
+            const pages = await this.pageService.search("");
+            const results = [];
+            const settings = await this.siteService.getSiteSettings();
+            const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+            const searchIndexBuilder = new SearchIndexBuilder();
+
+            for (const page of pages) {
+                results.push(this.renderAndUpload(settings, page, searchIndexBuilder));
+                sitemapBuilder.appendPermalink(page.permalink);
+            }
 
         for (const locale of locales) {
             try {

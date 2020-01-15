@@ -23,8 +23,12 @@ export class PageModelBinder implements IModelBinder<PageModel> {
         return model instanceof PageModel;
     }
 
-    public async contractToModel(pageContract: PageContract, bindingContext?: Bag<any>): Promise<any> {
+    public async contractToModel(pageContract: PageContract, bindingContext?: Bag<any>): Promise<PageModel> {
         let locale: string;
+        
+        if (bindingContext && bindingContext["routeKind"] === "layout") {
+            const pageModel = new PageModel();
+            pageModel.widgets = [<any>new PlaceholderModel("Page content")];
 
         if (bindingContext) {
             locale = bindingContext["locale"];
@@ -48,9 +52,7 @@ export class PageModelBinder implements IModelBinder<PageModel> {
 
         if (pageContract) { // Additonal check if 404 page no defined as well.
             const pageModel = new PageModel();
-            pageModel.title = pageContract.title;
-            pageModel.description = pageContract.description;
-            pageModel.keywords = pageContract.keywords;
+            pageModel.key = pageContract.key;
 
             const pageContent = await this.pageService.getPageContent(pageContract.key, locale);
 
@@ -71,9 +73,6 @@ export class PageModelBinder implements IModelBinder<PageModel> {
         }
 
         const pageModel = new PageModel();
-        pageModel.title = "";
-        pageModel.description = "";
-        pageModel.keywords = "";
         pageModel.widgets = [<any>new PlaceholderModel("No pages")];
 
         return pageModel;

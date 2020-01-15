@@ -1,6 +1,6 @@
-import { HistoryRouteHandler } from "@paperbits/common/routing/historyRouteHandler";
 import { BackgroundBindingHandler } from "./ko/bindingHandlers/bindingHandlers.background";
 import { WidgetBindingHandler } from "./ko/bindingHandlers/bindingHandlers.widget";
+import { SecuredBindingHandler } from "./ko/bindingHandlers/bindingHandlers.secured";
 import { DefaultRouter, DefaultRouteGuard } from "@paperbits/common/routing";
 import { SettingsProvider } from "@paperbits/common/configuration";
 import { IInjectorModule, IInjector } from "@paperbits/common/injection";
@@ -9,7 +9,6 @@ import { PictureModule } from "./picture/ko/picture.module";
 import { VideoPlayerModule } from "./video-player/ko/videoPlayer.module";
 import { YoutubePlayerModule } from "./youtube-player/ko/youtubePlayer.module";
 import { NavbarModule } from "./navbar/ko/navbar.module";
-import { TableOfContentsModule } from "./table-of-contents/ko/tableOfContents.module";
 import { MapModule } from "./map/ko/map.module";
 import { ButtonModule } from "./button/ko/button.module";
 import { TestimonialsModule } from "./testimonials/ko/testimonials.module";
@@ -20,7 +19,6 @@ import { BlogModule } from "./blog/blog.module";
 import { ColumnModule } from "./column/ko/column.module";
 import { SectionModule } from "./section/ko/section.module";
 import { RowModule } from "./row/ko/row.module";
-import { SearchResultsModule } from "./search-results/ko/searchResults.module";
 import { GoogleTagManager } from "./gtm/ko/gtm";
 import { TextblockModule } from "./textblock/ko/textblock.module";
 import { BackgroundModelBinder } from "@paperbits/common/widgets/background";
@@ -45,6 +43,8 @@ import { LocaleService } from "@paperbits/common/localization";
 import { CardModule } from "./card/ko/card.module";
 import { GridModule } from "./grid-layout-section/ko/grid.module";
 import { GridCellModule } from "./grid-cell/ko/gridCell.module";
+import { CollapsiblePanelModule } from "./collapsible-panel/ko";
+import { MenuModule } from "./menu/ko";
 
 
 /**
@@ -53,12 +53,12 @@ import { GridCellModule } from "./grid-cell/ko/gridCell.module";
 export class CoreModule implements IInjectorModule {
     public register(injector: IInjector): void {
         injector.bindCollection("autostart");
+        injector.bindCollection("styleHandlers");
         injector.bindCollectionLazily("widgetHandlers");
         injector.bindCollectionLazily("routeGuards");
         injector.bindCollectionLazily("modelBinders");
         injector.bindCollectionLazily("viewModelBinders");
         
-
         /*** Core ***/
         injector.bindSingleton("settingsProvider", SettingsProvider);
         injector.bindSingleton("router", DefaultRouter);
@@ -102,16 +102,17 @@ export class CoreModule implements IInjectorModule {
         injector.bindModule(new NavbarModule());
         injector.bindModule(new ButtonModule());
         // injector.bindModule(new MapModule());
-        injector.bindModule(new TableOfContentsModule());
+        injector.bindModule(new MenuModule());
         injector.bindModule(new PictureModule());
         injector.bindModule(new VideoPlayerModule());
         injector.bindModule(new YoutubePlayerModule());
         injector.bindModule(new TestimonialsModule());
-        injector.bindModule(new SearchResultsModule());
         injector.bindModule(new CardModule());
+        injector.bindModule(new CollapsiblePanelModule());
 
         injector.bindToCollection("routeGuards", DefaultRouteGuard);
         injector.bindToCollection("autostart", WidgetBindingHandler);
-        injector.bindToCollection("autostart", BackgroundBindingHandler);        
+        injector.bindToCollection("autostart", BackgroundBindingHandler);
+        injector.bindToCollection("autostart", SecuredBindingHandler);
     }
 }

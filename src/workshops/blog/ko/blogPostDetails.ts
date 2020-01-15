@@ -1,14 +1,13 @@
 ﻿import template from "./blogPostDetails.html";
 import { IBlogService } from "@paperbits/common/blogs";
 import { Router } from "@paperbits/common/routing";
-import { IViewManager } from "@paperbits/common/ui";
+import { ViewManager } from "@paperbits/common/ui";
 import { Component, Param, Event, OnMounted } from "@paperbits/common/ko/decorators";
 import { BlogPostItem } from "./blogPostItem";
 
 @Component({
     selector: "blog-post-details-workshop",
-    template: template,
-    injectable: "blogPostDetailsWorkshop"
+    template: template
 })
 export class BlogPostDetailsWorkshop {
     @Param()
@@ -20,7 +19,7 @@ export class BlogPostDetailsWorkshop {
     constructor(
         private readonly blogService: IBlogService,
         private readonly router: Router,
-        private readonly viewManager: IViewManager
+        private readonly viewManager: ViewManager
     ) {
         // rebinding...
         this.onMounted = this.onMounted.bind(this);
@@ -42,7 +41,7 @@ export class BlogPostDetailsWorkshop {
             .subscribe(this.updateBlogPost);
 
         this.blogPostItem.permalink
-            .extend(<any>{ uniquePermalink: this.blogPostItem.permalink, required: true, onlyValid: true })
+            .extend(<any>{ validPermalink: this.blogPostItem.permalink, required: true, onlyValid: true })
             .subscribe(this.updatePermlaink);
 
         const blogPost = await this.blogService.getBlogPostByKey(this.blogPostItem.key);

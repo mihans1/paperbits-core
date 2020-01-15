@@ -3,13 +3,12 @@ import { PageContract } from "@paperbits/common/pages/pageContract";
 import { HyperlinkModel } from "@paperbits/common/permalinks";
 
 export class AnchorItem {
-    public hasFocus: ko.Observable<boolean>;
     public title: string;
     public shortTitle: string;
     public elementId: string;
-
+    public isSelected: ko.Observable<boolean>;
     constructor() {
-        this.hasFocus = ko.observable<boolean>(false);
+        this.isSelected = ko.observable<boolean>();
     }
 }
 
@@ -20,7 +19,7 @@ export class PageItem {
     public title: ko.Observable<string>;
     public description: ko.Observable<string>;
     public keywords: ko.Observable<string>;
-    public hasFocus: ko.Observable<boolean>;
+    public isSelected: ko.Observable<boolean>;
 
     public anchors: ko.ObservableArray<AnchorItem>;
     public selectedAnchor?: AnchorItem;
@@ -32,7 +31,7 @@ export class PageItem {
         this.description = ko.observable<string>(page.description);
         this.keywords = ko.observable<string>(page.keywords);
         this.permalink = ko.observable<string>(page.permalink);
-        this.hasFocus = ko.observable<boolean>(false);
+        this.isSelected = ko.observable<boolean>();
         this.anchors = ko.observableArray<AnchorItem>();
     }
 

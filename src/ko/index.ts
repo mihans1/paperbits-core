@@ -1,5 +1,4 @@
-export * from "./consts";
-export * from "./knockout.editors";
+export * from "../spinner";
 export * from "./knockout.loaders";
 export * from "./ko.module";
 export * from "./viewModelBinderSelector";

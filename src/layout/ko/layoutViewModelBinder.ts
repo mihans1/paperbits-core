@@ -5,7 +5,7 @@ import { LayoutModelBinder } from "../layoutModelBinder";
 import { LayoutHandlers } from "../layoutHandlers";
 import { ViewModelBinderSelector } from "../../ko/viewModelBinderSelector";
 import { IWidgetBinding } from "@paperbits/common/editing";
-import { IEventManager } from "@paperbits/common/events";
+import { EventManager } from "@paperbits/common/events";
 import { ModelBinderSelector, ViewModelBinder } from "@paperbits/common/widgets";
 import { ILayoutService } from "@paperbits/common/layouts";
 import { Bag } from "@paperbits/common";
@@ -14,20 +14,18 @@ import { Bag } from "@paperbits/common";
 export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, LayoutViewModel> {
     constructor(
         private readonly viewModelBinderSelector: ViewModelBinderSelector,
-        private readonly eventManager: IEventManager,
+        private readonly eventManager: EventManager,
         private readonly layoutService: ILayoutService,
         private readonly modelBinderSelector: ModelBinderSelector,
         private readonly layoutModelBinder: LayoutModelBinder
     ) { }
 
-    public createBinding(model: LayoutModel, viewModel: LayoutViewModel, bindingContext: Bag<any>): void {
+    public createBinding(model: LayoutModel, viewModel: LayoutViewModel, bindingContext?: Bag<any>): void {
         let savingTimeout;
 
         const updateContent = async (): Promise<void> => {
-            const layout = await this.layoutService.getLayoutByPermalink(bindingContext.navigationPath);
-            const layoutContent = await this.layoutService.getLayoutContent(layout.key);
-
             const contentContract = {
+                type: "layout",
                 nodes: []
             };
 
@@ -36,9 +34,7 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
                 contentContract.nodes.push(modelBinder.modelToContract(section));
             });
 
-            Object.assign(layoutContent, contentContract);
-
-            await this.layoutService.updateLayoutContent(layout.key, layoutContent);
+            await this.layoutService.updateLayoutContent(model.key, contentContract);
         };
 
         const scheduleUpdate = async (): Promise<void> => {
@@ -54,11 +50,11 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
             name: "layout",
             displayName: "Layout",
             model: model,
-            readonly: bindingContext ? bindingContext.readonly : false,
+            readonly: bindingContext && bindingContext["routeKind"] !== "layout",
             handler: LayoutHandlers,
             provides: ["static", "scripts", "keyboard"],
-            applyChanges: () => {
-                this.modelToViewModel(model, viewModel);
+            applyChanges: async () => {
+                await this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");
             },
             onCreate: () => {
@@ -91,7 +87,6 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
             viewModels.push(widgetViewModel);
         }
 
-        viewModel.permalinkTemplate(model.permalinkTemplate);
         viewModel.widgets(viewModels);
 
         if (!viewModel["widgetBinding"]) {
@@ -103,6 +98,16 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
 
     public canHandleModel(model: LayoutModel): boolean {
         return model instanceof LayoutModel;
+    }
+
+    
+    public async getLayoutViewModelByKey(path: string, layoutKey: string): Promise<any> {
+        const bindingContext = { navigationPath: path, routeKind: "layout" };
+        const layoutContract = await this.layoutService.getLayoutByKey(layoutKey);
+        const layoutModel = await this.layoutModelBinder.contractToModel(layoutContract, bindingContext);
+        const layoutViewModel = this.modelToViewModel(layoutModel, null, bindingContext);
+
+        return layoutViewModel;
     }
 
     public async getLayoutViewModel(path: string, routeKind: string): Promise<any> {

@@ -1,8 +1,12 @@
-<div class="flex-container flex-container-column fit">
+<div class="flex flex-column fit">
     <fieldset class="flex-item form">
         <div class="form-group">
-            <input class="form-control" type="search" data-bind="textInput: searchPattern, valueUpdate: 'keyup'" placeholder="Search pages..."
-            />
+            <input class="form-control" type="search" role="searchbox" 
+                data-bind="textInput: searchPattern, valueUpdate: 'keyup', focus: true" placeholder="Search pages..."
+                aria-label="Search pages" aria-controls="searchResult"/>
+            <p id="searchResult" class="text-hide" role="region" aria-live="polite"
+                data-bind="text: `Pages found: ${pages().length}`">
+            </p>
         </div>
     </fieldset>
 
@@ -24,12 +28,14 @@
     <spinner></spinner>
     <!--/ko-->
 
-    <ul class="flex-item flex-item-grow list" data-bind="foreach: pages, scrollable: {}">
-        <li tabindex="0" class="list-item" data-bind="css: { selected: hasFocus }, click: $component.selectPage, hasFocus: hasFocus, event: { keydown: $component.onKeyDown }">
+    <div class="flex-item flex-item-grow list" role="list"
+        data-bind="foreach: { data: pages, as: 'page' }, scrollable: true">
+        <a href="#" role="listitem" class="list-item"
+            data-bind="css: { selected: page.isSelected }, activate: $component.selectPage, selectItem: page.isSelected">
             <i class="paperbits-icon paperbits-single-content-03"></i>
-            <span data-bind="text: title"></span>
-        </li>
-    </ul>
+            <span data-bind="text: page.title"></span>
+        </a>
+    </div>
 
     <div class="flex-item btn-group">
         <button class="btn" data-bind="click: addPage">

@@ -3,11 +3,16 @@ import * as ko from "knockout";
 import * as Utils from "@paperbits/common";
 import * as Objects from "@paperbits/common/objects";
 import template from "./sectionEditor.html";
-import { IViewManager } from "@paperbits/common/ui";
+import { ViewManager } from "@paperbits/common/ui";
 import { Component, Param, Event, OnMounted } from "@paperbits/common/ko/decorators";
 import { SectionModel } from "../sectionModel";
-import { BackgroundStylePluginConfig, TypographyStylePluginConfig } from "@paperbits/styles/contracts";
 import { GridModel } from "../../grid-layout-section";
+import {
+    BackgroundStylePluginConfig,
+    TypographyStylePluginConfig,
+    MarginStylePluginConfig,
+    SizeStylePluginConfig
+} from "@paperbits/styles/contracts";
 
 
 const styleKeySnapTop = "utils/block/snapToTop";
@@ -16,11 +21,10 @@ const styleKeyStretch = "utils/block/stretch";
 
 @Component({
     selector: "layout-section-editor",
-    template: template,
-    injectable: "sectionEditor"
+    template: template
 })
 export class SectionEditor {
-    public readonly snap: ko.Observable<string>;
+    public readonly stickTo: ko.Observable<string>;
     public readonly background: ko.Observable<BackgroundStylePluginConfig>;
     public readonly typography: ko.Observable<TypographyStylePluginConfig>;
     public readonly stretch: ko.Observable<boolean>;
@@ -35,11 +39,11 @@ export class SectionEditor {
     public readonly marginRight: ko.Observable<string>;
     public readonly marginBottom: ko.Observable<string>;
 
-    constructor(private readonly viewManager: IViewManager) {
+    constructor(private readonly viewManager: ViewManager) {
         this.initialize = this.initialize.bind(this);
         this.onBackgroundUpdate = this.onBackgroundUpdate.bind(this);
         this.onTypographyUpdate = this.onTypographyUpdate.bind(this);
-        this.snap = ko.observable<string>("none");
+        this.stickTo = ko.observable<string>("none");
         this.stretch = ko.observable<boolean>(false);
         this.background = ko.observable<BackgroundStylePluginConfig>();
         this.typography = ko.observable<TypographyStylePluginConfig>();
@@ -64,8 +68,8 @@ export class SectionEditor {
         const viewport = this.viewManager.getViewport();
 
         if (this.model.styles) {
-            if (this.model.styles["instance"]) {
-                const sectionStyles = this.model.styles["instance"];
+            if (this.model.styles.instance) {
+                const sectionStyles = this.model.styles.instance;
 
                 if (sectionStyles) {
                     this.background(sectionStyles.background);
@@ -73,35 +77,26 @@ export class SectionEditor {
                 }
             }
 
-            if (this.model.styles["size"]) {
-                this.stretch(true);
+            const stickToStyles = <any>Objects.getObjectAt(`instance/stickTo/${viewport}`, this.model.styles);
+
+            if (stickToStyles) {
+                this.stickTo(stickToStyles);
             }
 
-            if (this.model.styles["snap"]) {
-                const snapStyleKey = this.model.styles["snap"]["xs"];
-
-                switch (snapStyleKey) {
-                    case styleKeySnapTop:
-                        this.snap("top");
-                        break;
-
-                    case styleKeySnapBottom:
-                        this.snap("bottom");
-                        break;
-                }
-            }
+            const stretchStyle = Objects.getObjectAt(`instance/size/${viewport}/stretch`, this.model.styles);
+            this.stretch(!!stretchStyle);
         }
 
         const gridModel = <GridModel>this.model.widgets[0];
         const gridStyles = gridModel.styles;
-        const sizeStyles = <any>Objects.getObjectAt(`instance/size/${viewport}`, gridStyles);
+        const containerSizeStyles = <any>Objects.getObjectAt(`instance/size/${viewport}`, gridStyles);
         const marginStyles = <any>Objects.getObjectAt(`instance/margin/${viewport}`, gridStyles);
 
-        if (sizeStyles) {
-            this.minWidth(sizeStyles.minWidth);
-            this.maxWidth(sizeStyles.maxWidth);
-            this.minHeight(sizeStyles.minHeight);
-            this.maxHeight(sizeStyles.maxHeight);
+        if (containerSizeStyles) {
+            this.minWidth(containerSizeStyles.minWidth);
+            this.maxWidth(containerSizeStyles.maxWidth);
+            this.minHeight(containerSizeStyles.minHeight);
+            this.maxHeight(containerSizeStyles.maxHeight);
         }
 
         if (marginStyles) {
@@ -111,20 +106,20 @@ export class SectionEditor {
             this.marginBottom(marginStyles.bottom);
         }
 
-        this.snap.subscribe(this.applyChanges.bind(this));
-        this.stretch.subscribe(this.applyChanges.bind(this));
-        this.background.subscribe(this.applyChanges.bind(this));
-        this.typography.subscribe(this.applyChanges.bind(this));
+        this.stickTo.subscribe(this.applyChanges);
+        this.stretch.subscribe(this.applyChanges);
+        this.background.subscribe(this.applyChanges);
+        this.typography.subscribe(this.applyChanges);
 
-        this.minWidth.subscribe(this.applyChanges.bind(this));
-        this.maxWidth.subscribe(this.applyChanges.bind(this));
-        this.minHeight.subscribe(this.applyChanges.bind(this));
-        this.maxHeight.subscribe(this.applyChanges.bind(this));
+        this.minWidth.subscribe(this.applyChanges);
+        this.maxWidth.subscribe(this.applyChanges);
+        this.minHeight.subscribe(this.applyChanges);
+        this.maxHeight.subscribe(this.applyChanges);
 
-        this.marginTop.subscribe(this.applyChanges.bind(this));
-        this.marginLeft.subscribe(this.applyChanges.bind(this));
-        this.marginRight.subscribe(this.applyChanges.bind(this));
-        this.marginBottom.subscribe(this.applyChanges.bind(this));
+        this.marginTop.subscribe(this.applyChanges);
+        this.marginLeft.subscribe(this.applyChanges);
+        this.marginRight.subscribe(this.applyChanges);
+        this.marginBottom.subscribe(this.applyChanges);
     }
 
     /**
@@ -134,44 +129,24 @@ export class SectionEditor {
         const viewport = this.viewManager.getViewport();
         this.model.styles = this.model.styles || {};
 
-        if (this.stretch()) {
-            this.model.styles["size"] = { xs: styleKeyStretch };
-        }
-        else {
-            delete this.model.styles["size"];
-        }
-
-        switch (this.snap()) {
-            case "top":
-                this.model.styles["snap"] = { xs: styleKeySnapTop };
-                break;
-
-            case "bottom":
-                this.model.styles["snap"] = { xs: styleKeySnapBottom };
-                break;
-
-            default:
-                delete this.model.styles["snap"];
-        }
-
-        if (this.model["styles"]["instance"] && !this.model["styles"]["instance"]["key"]) {
-            this.model["styles"]["instance"]["key"] = Utils.randomClassName();
+        if (this.model.styles.instance && !this.model.styles.instance.key) {
+            this.model.styles.instance.key = Utils.randomClassName();
         }
 
         const gridModel = <GridModel>this.model.widgets[0];
         const gridStyles = gridModel.styles;
 
-        const sizeStyles = {
+        const containerSizeStyles: SizeStylePluginConfig = {
             minWidth: this.minWidth(),
             maxWidth: this.maxWidth(),
             minHeight: this.minHeight(),
             maxHeight: this.maxHeight()
         };
 
-        Objects.cleanupObject(sizeStyles);
-        Objects.setValue(`instance/size/${viewport}`, gridStyles, sizeStyles);
+        Objects.cleanupObject(containerSizeStyles);
+        Objects.setValue(`instance/size/${viewport}`, gridStyles, containerSizeStyles);
 
-        const marginStyles = {
+        const marginStyle: MarginStylePluginConfig = {
             top: this.marginTop(),
             bottom: this.marginBottom(),
             left: "auto",
@@ -181,23 +156,23 @@ export class SectionEditor {
             // marginRight: this.marginRight()
         };
 
-        Objects.cleanupObject(marginStyles);
-        Objects.setValue(`instance/margin/${viewport}`, gridStyles, marginStyles);
+        Objects.cleanupObject(marginStyle);
+        Objects.setValue(`instance/margin/${viewport}`, gridStyles, marginStyle);
+        Objects.setValue(`instance/stickTo/${viewport}`, this.model.styles, this.stickTo());
+        Objects.setValue(`instance/size/${viewport}/stretch`, this.model.styles, this.stretch());
 
         this.onChange(this.model);
     }
 
     public onBackgroundUpdate(background: BackgroundStylePluginConfig): void {
         Objects.setStructure("styles/instance/background", this.model);
-        this.model["styles"]["instance"]["background"] = background;
-
+        this.model.styles.instance["background"] = background;
         this.applyChanges();
     }
 
     public onTypographyUpdate(typography: TypographyStylePluginConfig): void {
         Objects.setStructure("styles/instance/typography", this.model);
-        this.model["styles"]["instance"]["typography"] = typography;
-
+        this.model.styles.instance["typography"] = typography;
         this.applyChanges();
     }
 }

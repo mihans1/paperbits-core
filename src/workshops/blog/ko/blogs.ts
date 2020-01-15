@@ -1,21 +1,18 @@
 ﻿import * as ko from "knockout";
 import template from "./blogs.html";
-import { IBlogService } from "@paperbits/common/blogs/IBlogService";
+import { IBlogService } from "@paperbits/common/blogs";
 import { Router } from "@paperbits/common/routing";
-import { IViewManager, IView } from "@paperbits/common/ui";
+import { ViewManager, View } from "@paperbits/common/ui";
 import { Keys } from "@paperbits/common/keyboard";
-import { Component } from "@paperbits/common/ko/decorators";
+import { Component, OnMounted } from "@paperbits/common/ko/decorators";
 import { BlogPostItem } from "./blogPostItem";
-import { LayoutViewModelBinder } from "../../../layout/ko";
+import { ChangeRateLimit } from "@paperbits/common/ko/consts";
 
 @Component({
     selector: "blogs",
-    template: template,
-    injectable: "blogWorkshop"
+    template: template
 })
 export class BlogWorkshop {
-    private searchTimeout: any;
-
     public readonly searchPattern: ko.Observable<string>;
     public readonly blogPosts: ko.ObservableArray<BlogPostItem>;
     public readonly working: ko.Observable<boolean>;
@@ -24,25 +21,24 @@ export class BlogWorkshop {
     constructor(
         private readonly blogService: IBlogService,
         private readonly router: Router,
-        private readonly viewManager: IViewManager,
-        private readonly layoutViewModelBinder: LayoutViewModelBinder
+        private readonly viewManager: ViewManager,
     ) {
-        // rebinding...
-        this.searchBlogPosts = this.searchBlogPosts.bind(this);
-        this.addBlogPost = this.addBlogPost.bind(this);
-        this.selectBlogPost = this.selectBlogPost.bind(this);
-        this.keydown = this.keydown.bind(this);
-
-        // setting up...
-        this.working = ko.observable(true);
-        this.blogPosts = ko.observableArray<BlogPostItem>();
-        this.selectedBlogPost = ko.observable<BlogPostItem>();
+        this.blogPosts = ko.observableArray();
+        this.selectedBlogPost = ko.observable();
         this.searchPattern = ko.observable<string>("");
-        this.searchPattern.subscribe(this.searchBlogPosts);
-        this.searchBlogPosts("");
+        this.working = ko.observable();
     }
 
-    public async launchSearch(searchPattern: string): Promise<void> {
+    @OnMounted()
+    public async initialize(): Promise<void> {
+        await this.searchPosts();
+
+        this.searchPattern
+            .extend(ChangeRateLimit)
+            .subscribe(this.searchPosts);
+    }
+
+    public async searchPosts(searchPattern: string = ""): Promise<void> {
         this.working(true);
 
         const blogposts = await this.blogService.search(searchPattern);
@@ -53,26 +49,18 @@ export class BlogWorkshop {
         this.working(false);
     }
 
-    public async searchBlogPosts(searchPattern: string = ""): Promise<void> {
-        clearTimeout(this.searchTimeout);
-
-        this.searchTimeout = setTimeout(() => {
-            this.launchSearch(searchPattern);
-        }, 600);
-    }
-
     public selectBlogPost(blogPostItem: BlogPostItem): void {
         this.selectedBlogPost(blogPostItem);
-        this.viewManager.setHost({ name: "content-host" });
-        
-        const view: IView = {
+        this.viewManager.setHost({ name: "page-host" });
+
+        const view: View = {
             heading: "Blog post",
             component: {
                 name: "blog-post-details-workshop",
                 params: {
                     pageItem: blogPostItem,
                     onDeleteCallback: () => {
-                        this.searchBlogPosts();
+                        this.searchPosts();
                     }
                 }
             }

@@ -5,16 +5,16 @@ import { GridModel } from "../gridModel";
 import { PlaceholderViewModel } from "../../placeholder/ko/placeholderViewModel";
 import { ViewModelBinderSelector } from "../../ko/viewModelBinderSelector";
 import { GridHandlers } from "../gridHandlers";
-import { IEventManager } from "@paperbits/common/events";
-import { IStyleCompiler } from "@paperbits/common/styles";
+import { EventManager } from "@paperbits/common/events";
+import { StyleCompiler } from "@paperbits/common/styles";
 import { Bag } from "@paperbits/common";
 
 
 export class GridViewModelBinder implements ViewModelBinder<GridModel, GridViewModel> {
     constructor(
         private readonly viewModelBinderSelector: ViewModelBinderSelector,
-        private readonly eventManager: IEventManager,
-        private readonly styleCompiler: IStyleCompiler
+        private readonly eventManager: EventManager,
+        private readonly styleCompiler: StyleCompiler
     ) { }
 
     public async modelToViewModel(model: GridModel, viewModel?: GridViewModel, bindingContext?: Bag<any>): Promise<GridViewModel> {
@@ -49,9 +49,8 @@ export class GridViewModelBinder implements ViewModelBinder<GridModel, GridViewM
             flow: "block",
             editor: "grid-layout-grid-editor",
             handler: GridHandlers,
-            applyChanges: (changes) => {
-                Object.assign(model, changes);
-                this.modelToViewModel(model, viewModel);
+            applyChanges: async (changes) => {
+                await this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");
             }
         };

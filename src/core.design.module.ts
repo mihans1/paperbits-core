@@ -8,8 +8,6 @@ import { IInjectorModule, IInjector } from "@paperbits/common/injection";
 import { VideoPlayerEditorModule } from "./video-player/ko/videoPlayerEditor.module";
 import { PictureEditorModule } from "./picture/ko/pictureEditor.module";
 import { YoutubePlayerEditorModule } from "./youtube-player/ko/youtubePlayerEditor.module";
-import { NavbarEditorModule } from "./navbar/ko/navbarEditor.module";
-import { TableOfContentsEditorModule } from "./table-of-contents/ko/tableOfContentsEditor.module";
 import { ButtonEditorModule } from "./button/ko/buttonEditor.module";
 import { TestimonialsEditorModule } from "./testimonials/ko/testimonialsEditor.module";
 import { ColumnEditorModule } from "./column/ko/columnEditor.module";
@@ -43,7 +41,7 @@ import { MediaHyperlinkProvider } from "@paperbits/common/media";
 import { DragManager } from "@paperbits/common/ui/draggables";
 import { UnhandledErrorHandler } from "@paperbits/common/errors";
 import { PlaceholderViewModel } from "./placeholder/ko/placeholderViewModel";
-import { ViewManager, Tooltip } from "./ko/ui";
+import { DefaultViewManager, Tooltip } from "./ko/ui";
 import { KnockoutValidation } from "./ko/validation/validators";
 import { CropperBindingHandler } from "./workshops/cropper/cropper";
 import { GridEditor } from "./grid/ko";
@@ -51,19 +49,28 @@ import { CardEditorModule } from "./card/ko/cardEditor.module";
 import { MediaPermalinkResolver } from "@paperbits/common/media/mediaPermalinkResolver.design";
 import { GridEditorModule } from "./grid-layout-section/ko/gridEditor.module";
 import { GridCellEditorModule } from "./grid-cell/ko/gridCellEditor.module";
-import "./ko/bindingHandlers/bindingHandlers.command";
 import { PageHost } from "./workshops/page/ko/pageHost";
+import { LayoutHost } from "./workshops/layout/ko/layoutHost";
 import { Tray } from "./workshops/tray/tray";
+import { CollapsiblePanelEditorModule } from "./collapsible-panel/ko";
+import { MenuEditorModule } from "./menu/ko";
+import { Spinner } from "./ko";
+import { DesignerUserService } from "./ko/ui/designerUserService";
+import { RoleSelector, RoleInput } from "./workshops/roles/ko";
+import "./ko/bindingHandlers/bindingHandlers.command";
+import "./ko/bindingHandlers/bindingHandlers.dialog";
+import "./ko/bindingHandlers/bindingHandlers.activate";
 
 
 export class CoreDesignModule implements IInjectorModule {
     public register(injector: IInjector): void {
         injector.bindModule(new CoreModule());
+        injector.bindCollection("styleGroups");
         injector.bindCollection("dropHandlers");
         injector.bindCollectionLazily("workshopSections");
         injector.bindCollection("trayCommands");
         injector.bindCollection("hyperlinkProviders");
-        injector.bindSingleton("viewManager", ViewManager);
+        injector.bindSingleton("viewManager", DefaultViewManager);
         injector.bindSingleton("tray", Tray);
         injector.bind("pageHyperlinkProvider", PageHyperlinkProvider);
         injector.bind("blogHyperlinkProvider", BlogHyperlinkProvider);
@@ -90,6 +97,10 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bind("urlSelector", UrlSelector);
         injector.bind("confirmation", Confirmation);
         injector.bind("pageHost", PageHost);
+        injector.bind("layoutHost", LayoutHost);
+        injector.bind("roleSelector", RoleSelector);
+        injector.bind("roleInput", RoleInput);
+        injector.bind("spinner", Spinner);
         injector.bindSingleton("mediaPermalinkResolver", MediaPermalinkResolver);
         injector.bindModule(new TextblockEditorModule());
         injector.bindModule(new PictureEditorModule());
@@ -97,8 +108,7 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindModule(new VideoPlayerEditorModule());
         injector.bindModule(new YoutubePlayerEditorModule());
         injector.bindModule(new TestimonialsEditorModule());
-        injector.bindModule(new TableOfContentsEditorModule());
-        injector.bindModule(new NavbarEditorModule());
+        injector.bindModule(new MenuEditorModule());
         injector.bindModule(new DropbucketModule());
         injector.bindModule(new PageDesignModule());
         injector.bindModule(new BlogDesignModule());
@@ -115,6 +125,7 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindModule(new LayoutEditorModule());
         injector.bindModule(new PageEditorModule());
         injector.bindModule(new CardEditorModule());
+        injector.bindModule(new CollapsiblePanelEditorModule());
         injector.bindToCollection("hyperlinkProviders", UrlHyperlinkProvider);
         injector.bindToCollection("autostart", HostBindingHandler);
         injector.bindToCollection("autostart", DraggablesBindingHandler);
@@ -122,6 +133,11 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindToCollection("autostart", LightboxBindingHandler);
         injector.bindToCollection("autostart", HistoryRouteHandler);
         injector.bindToCollection("autostart", Hinter);
-        injector.resolve("workshopSections"); 
+        injector.bindInstance("reservedPermalinks", ["/", "/404", "/500"]);
+        injector.resolve("workshopSections");
+
+        const userService = new DesignerUserService();
+        injector.bindInstance("userService", userService);
+        injector.bindInstance("designerUserService", userService);
     }
 }

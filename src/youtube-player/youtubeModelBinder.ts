@@ -12,15 +12,14 @@ export class YoutubeModelBinder implements IModelBinder<YoutubePlayerModel> {
         return contract.type === "youtube-player";
     }
 
-    public canHandleModel(model): boolean {
+    public canHandleModel(model: any): boolean {
         return model instanceof YoutubePlayerModel;
     }
 
     public async contractToModel(youtubeNode: YoutubePlayerContract): Promise<YoutubePlayerModel> {
         const youtubePlayerModel = new YoutubePlayerModel();
 
-        youtubePlayerModel.videoId = youtubeNode.videoId;
-        youtubePlayerModel.origin = youtubeNode.origin;
+        youtubePlayerModel.videoId = youtubeNode.videoId || youtubeNode["videoKey"];
         youtubePlayerModel.controls = youtubeNode.controls;
         youtubePlayerModel.autoplay = youtubeNode.autoplay;
         youtubePlayerModel.loop = youtubeNode.loop;
@@ -32,7 +31,6 @@ export class YoutubeModelBinder implements IModelBinder<YoutubePlayerModel> {
         const youtubeConfig: YoutubePlayerContract = {
             type: "youtube-player",
             videoId: youtubeModel.videoId,
-            origin: youtubeModel.origin,
             controls: youtubeModel.controls,
             autoplay: youtubeModel.autoplay,
             loop: youtubeModel.loop

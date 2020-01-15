@@ -6,12 +6,12 @@ import { Component, OnMounted, Param, Event } from "@paperbits/common/ko/decorat
 import { BackgroundModel } from "@paperbits/common/widgets/background";
 import { PictureModel } from "../pictureModel";
 import { StyleService } from "@paperbits/styles/styleService";
+import { LocalStyles } from "@paperbits/common/styles";
 
 
 @Component({
     selector: "paperbits-picture-editor",
-    template: template,
-    injectable: "pictureEditor"
+    template: template
 })
 export class PictureEditor {
     public readonly caption: ko.Observable<string>;
@@ -23,8 +23,8 @@ export class PictureEditor {
     public readonly hyperlinkTitle: ko.Computed<string>;
     public readonly width: ko.Observable<number>;
     public readonly height: ko.Observable<number>;
-    public readonly appearanceStyles: ko.ObservableArray<any>;
-    public readonly appearanceStyle: ko.Observable<any>;
+
+    public readonly appearanceStyle: ko.Observable<LocalStyles>;
 
     constructor(
         private readonly styleService: StyleService,
@@ -39,7 +39,6 @@ export class PictureEditor {
         this.height = ko.observable<number>();
         this.background = ko.observable();
         this.hyperlinkTitle = ko.computed<string>(() => this.hyperlink() ? this.hyperlink().title : "Add a link...");
-        this.appearanceStyles = ko.observableArray<any>();
         this.appearanceStyle = ko.observable<any>();
     }
 
@@ -67,10 +66,9 @@ export class PictureEditor {
 
         const variations = await this.styleService.getComponentVariations("picture");
 
-        this.appearanceStyles(variations.filter(x => x.category === "appearance"));
-
         if (this.model.styles) {
-            this.appearanceStyle(this.model.styles.appearance);
+            const selectedAppearence = variations.find(x => x.category === "appearance" && x.key === this.model.styles.appearance);
+            this.appearanceStyle(selectedAppearence);
         }
 
         this.caption.subscribe(this.applyChanges);
@@ -82,15 +80,26 @@ export class PictureEditor {
         this.appearanceStyle.subscribe(this.applyChanges);
     }
 
+    public onVariationSelected(snippet: LocalStyles): void {
+        if (snippet) {
+            this.appearanceStyle(snippet);
+        }
+    }
+
     public applyChanges(): void {
         this.model.caption = this.caption();
         this.model.hyperlink = this.hyperlink();
         this.model.sourceKey = this.sourceKey();
         this.model.width = this.width();
         this.model.height = this.height();
-        this.model.styles = {
-            appearance: this.appearanceStyle()
-        };
+
+        const appearanceStyle = this.appearanceStyle();
+
+        if (appearanceStyle) {
+            this.model.styles = {
+                appearance: this.appearanceStyle().key
+            };
+        }
 
         this.onChange(this.model);
     }

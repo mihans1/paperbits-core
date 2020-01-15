@@ -1,109 +1,103 @@
 ﻿import * as ko from "knockout";
-import { IInjector, IInjectorModule } from "@paperbits/common/injection";
+import { IInjector, IInjectorModule, InjectableMetadataKey } from "@paperbits/common/injection";
+import { ComponentConfig } from "@paperbits/common/ko/decorators/component.decorator";
+import { ComponentDefinition } from "./bindingHandlers/bindingHandlers.component";
 
 export class KnockoutRegistrationLoaders implements IInjectorModule {
     public register(injector: IInjector): void {
         const injectableComponentLoader = {
-            loadViewModel(name: string, config: any, callback): void {
-                if (config.injectable) {
-                    const viewModelConstructor = (params) => {
-                        const resolvedInjectable: any = injector.resolve(config.injectable);
+            loadViewModel(name: string, config: any, callback: (resolvedViewModel: any) => void): void {
+                const injectable = Reflect.getMetadata(InjectableMetadataKey, config);
 
-                        let instance = resolvedInjectable;
+                if (!injectable) {
+                    callback(null); // If no injectable metadata, let another loader handle it.
+                    return;
+                }
 
-                        if (resolvedInjectable.factory) {
-                            instance = resolvedInjectable.factory(injector, params);
+                const viewModelConstructor: any = function (params?: any): any {
+                    const resolvedInjectable: any = injector.resolve(injectable.name);
+
+                    let instance = resolvedInjectable;
+
+                    if (resolvedInjectable.factory) {
+                        instance = resolvedInjectable.factory(injector, params);
+                    }
+
+                    Object.getOwnPropertyNames(instance.constructor.prototype).forEach(prop => {
+                        if (typeof instance[prop] === "function" && prop !== "constructor") {
+                            instance[prop] = instance[prop].bind(instance);
+                        }
+                    });
+
+                    const parameterDescriptions = Reflect.getMetadata("params", instance.constructor);
+
+                    if (parameterDescriptions && params) {
+                        /* Attempt to convert params string to object, otherwise it doesn't 
+                         * make sense to iterate properties */
+
+                        if (typeof params === "string") {
+                            try {
+                                params = eval(`(${params})`);
+                            }
+                            catch (error) {
+                                // Do nothing
+                            }
                         }
 
-                        Object.getOwnPropertyNames(instance.constructor.prototype).forEach(prop => {
-                            if (typeof instance[prop] === "function" && prop !== "constructor") {
-                                instance[prop] = instance[prop].bind(instance);
-                            }
-                        });
+                        if (typeof params === "object") {
+                            parameterDescriptions.forEach(parameterName => {
+                                const instanceValue = instance[parameterName];
+                                const paramerterValue = params[parameterName] || params[parameterName.toLowerCase()];
 
-                        const parameterDescriptions = Reflect.getMetadata("params", instance.constructor);
-
-                        if (parameterDescriptions && params) {
-                            /* Attempt to convert params string to object, otherwise it doesn't 
-                             * make sense to iterate properties */
-
-                            if (typeof params === "string") {
-                                try {
-                                    params = eval(`(${params})`);
+                                if (paramerterValue === undefined) {
+                                    return;
                                 }
-                                catch (error) {
-                                    // Do nothing
-                                }
-                            }
 
-                            if (typeof params === "object") {
-                                parameterDescriptions.forEach(parameterName => {
-                                    const instanceValue = instance[parameterName];
+                                if (ko.isObservable(instanceValue)) {
+                                    if (ko.isObservable(paramerterValue)) {
+                                        // Assigning initial value
+                                        instanceValue(paramerterValue());
 
-                                    const paramerterValue = params[parameterName] || params[parameterName.toLowerCase()];
-
-                                    if (ko.isObservable(instanceValue)) {
-                                        if (ko.isObservable(paramerterValue)) {
-                                            // Assigning initial value
-                                            instanceValue(paramerterValue());
-
-                                            // Subscribing for all future changes
-                                            paramerterValue.subscribe((value) => {
-                                                instanceValue(value);
-                                            });
-                                        }
-                                        else {
-                                            instanceValue(paramerterValue);
-                                        }
+                                        // Subscribing for all future changes
+                                        paramerterValue.subscribe((value) => {
+                                            instanceValue(value);
+                                        });
                                     }
                                     else {
-                                        instance[parameterName] = ko.unwrap(paramerterValue);
+                                        instanceValue(paramerterValue);
                                     }
-                                });
+                                }
+                                else {
+                                    instance[parameterName] = ko.unwrap(paramerterValue);
+                                }
+                            });
+                        }
+                    }
+
+                    const eventDescriptions = Reflect.getMetadata("events", instance.constructor);
+
+                    if (eventDescriptions) {
+                        eventDescriptions.forEach(methodReference => {
+                            instance[methodReference] = params[methodReference];
+                        });
+                    }
+
+                    const onMountedMethodDescriptions = Reflect.getMetadata("onmounted", instance.constructor);
+
+                    if (onMountedMethodDescriptions) {
+                        onMountedMethodDescriptions.forEach(methodDescription => {
+                            const methodReference = instance[methodDescription];
+
+                            if (methodReference) {
+                                methodReference();
                             }
-                        }
+                        });
+                    }
 
-                        const eventDescriptions = Reflect.getMetadata("events", instance.constructor);
+                    return instance;
+                };
 
-                        if (eventDescriptions) {
-                            eventDescriptions.forEach(methodReference => {
-                                instance[methodReference] = params[methodReference];
-                            });
-                        }
-
-                        const onMountedMethodDescriptions = Reflect.getMetadata("onmounted", instance.constructor);
-
-                        if (onMountedMethodDescriptions) {
-                            onMountedMethodDescriptions.forEach(methodDescription => {
-                                const methodReference = instance[methodDescription];
-
-                                if (methodReference) {
-                                    methodReference();
-                                }
-                            });
-                        }
-
-                        const onDestroyedMethodDescriptions = Reflect.getMetadata("ondestroyed", instance.constructor);
-
-                        if (onDestroyedMethodDescriptions) {
-                            onDestroyedMethodDescriptions.forEach(methodDescription => {
-                                const methodReference = instance[methodDescription];
-
-                                if (methodReference) {
-                                    methodReference();
-                                }
-                            });
-                        }
-
-                        return instance;
-                    };
-
-                    (<any>ko.components.defaultLoader).loadViewModel(name, viewModelConstructor, callback);
-                }
-                else {
-                    // Unrecognized config format. Let another loader handle it.
-                    callback(null);
-                }
+                ko.components.defaultLoader.loadViewModel(name, viewModelConstructor, callback);
             },
 
             loadTemplate(name: string, templateHtml: any, callback: (result: Node[]) => void): void {
@@ -113,7 +107,7 @@ export class KnockoutRegistrationLoaders implements IInjectorModule {
                 (<any>ko.components.defaultLoader).loadTemplate(name, nodes, callback);
             },
 
-            loadComponent(componentName: string, config: any, callback: (definition: KnockoutComponentTypes.Definition) => void): void {
+            loadComponent(componentName: string, config: ComponentConfig, callback: (definition: KnockoutComponentTypes.Definition) => void): void {
                 const callbackWrapper: (result: KnockoutComponentTypes.Definition) => void = (resultWrapper: KnockoutComponentTypes.Definition) => {
 
                     const createViewModelWrapper: (params: any, options: { element: Node; }) => any = (params: any, options: { element: Node; }) => {
@@ -129,26 +123,18 @@ export class KnockoutRegistrationLoaders implements IInjectorModule {
                                 }
                             }
                             if (Object.keys(runtimeParams).length > 0) {
-                                params = Object.assign(runtimeParams, params);
+                                params = { ...runtimeParams, ...params };
                             }
                         }
-                        if (config.preprocess) {
-                            config.preprocess(options.element, params);
-                        }
 
-                        const viewModel = resultWrapper.createViewModel(params, options);
-
-                        if (config.postprocess) {
-                            config.postprocess(options.element, viewModel);
-                        }
-
-                        return viewModel;
+                        return resultWrapper.createViewModel(params, options);
                     };
 
-                    const definitionWrapper /*: KnockoutComponentTypes.Definition*/ = {
+                    const definitionWrapper: ComponentDefinition = {
                         template: resultWrapper.template,
                         createViewModel: createViewModelWrapper,
-                        constructor: config.constructor
+                        constructor: config.constructor,
+                        encapsulation: config.encapsulation
                     };
 
                     callback(definitionWrapper);
@@ -159,5 +145,12 @@ export class KnockoutRegistrationLoaders implements IInjectorModule {
         };
 
         ko.components.loaders.unshift(injectableComponentLoader);
+
+        ko.bindingProvider.instance.preprocessNode = (node: HTMLElement): Node[] => {
+            if (node.removeAttribute) {
+                setImmediate(() => node.removeAttribute("data-bind"));
+            }
+            return null;
+        };
     }
 }

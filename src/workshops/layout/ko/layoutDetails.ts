@@ -1,15 +1,14 @@
 ﻿import * as ko from "knockout";
 import template from "./layoutDetails.html";
 import { Router } from "@paperbits/common/routing";
-import { IViewManager } from "@paperbits/common/ui";
+import { ViewManager } from "@paperbits/common/ui";
 import { ILayoutService } from "@paperbits/common/layouts/";
 import { LayoutItem } from "./layoutItem";
 import { Component, Param, Event, OnMounted } from "@paperbits/common/ko/decorators";
 
 @Component({
     selector: "layout-details-workshop",
-    template: template,
-    injectable: "layoutDetails"
+    template: template
 })
 export class LayoutDetails {
     public isDefaultLayout: ko.Computed<boolean>;
@@ -18,7 +17,7 @@ export class LayoutDetails {
     constructor(
         private readonly layoutService: ILayoutService,
         private readonly router: Router,
-        private readonly viewManager: IViewManager
+        private readonly viewManager: ViewManager
     ) { }
 
     @Param()
@@ -49,9 +48,7 @@ export class LayoutDetails {
             return !this.isDefaultLayout();
         });
 
-        const permalinkTemplate = validPermalinkTemplate();
-
-        await this.router.navigateTo(permalinkTemplate, this.layoutItem.title(), { routeKind: "layout" });
+        this.viewManager.setHost({ name: "layout-host", params: { layoutKey: this.layoutItem.key } });
     }
 
     private async updateLayout(): Promise<void> {
@@ -59,7 +56,6 @@ export class LayoutDetails {
     }
 
     public async deleteLayout(): Promise<void> {
-        // TODO: Show confirmation dialog according to mockup
         await this.layoutService.deleteLayout(this.layoutItem.toLayout());
 
         this.viewManager.notifySuccess("Layouts", `Page "${this.layoutItem.title()}" was deleted.`);
@@ -69,6 +65,6 @@ export class LayoutDetails {
             this.onDeleteCallback();
         }
 
-        await this.router.navigateTo("/");
+        this.viewManager.setHost({ name: "page-host" }); // Returning to editing current page.
     }
 }

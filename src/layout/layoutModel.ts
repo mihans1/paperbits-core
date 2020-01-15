@@ -1,10 +1,17 @@
 import { WidgetModel } from "@paperbits/common/widgets";
 
-export class LayoutModel {
-    public type: string = "layout";
-    public title: string;
-    public description: string;   
-    public permalinkTemplate: string;
+/**
+ * Layout widget model.
+ */
+export class LayoutModel implements WidgetModel {
+    /**
+     * Unique identifier.
+     */
+    public key: string;
+
+    /**
+     * Child nodes.
+     */
     public widgets: WidgetModel[];
 
     constructor() {
