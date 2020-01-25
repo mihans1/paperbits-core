@@ -20,6 +20,7 @@ export class LayoutModelBinder {
     public async contractToModel(contract: LayoutContract, bindingContext?: Bag<any>): Promise<LayoutModel> {
         const layoutModel = new LayoutModel();
         layoutModel.key = contract.key;
+
         const layoutContent = await this.layoutService.getLayoutContent(contract.key);
 
         const modelPromises = layoutContent.nodes.map(async (contract: Contract) => {
