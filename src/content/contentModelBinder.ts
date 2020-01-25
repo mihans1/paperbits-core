@@ -29,7 +29,7 @@ export class ContentModelBinder<TModel> implements IModelBinder<TModel> {
     }
 
     public canHandleContract(contract: Contract): boolean {
-        return contract.type === "page";
+        return contract.type === "page"; // TODO: Rename "page" > "content"
     }
 
     public canHandleModel(model: WidgetModel): boolean {
@@ -55,7 +55,7 @@ export class ContentModelBinder<TModel> implements IModelBinder<TModel> {
 
     public modelToContract(model: TModel): Contract {
         const contract: Contract = {
-            type: "page"
+            type: "page" // TODO: Rename "page" > "content"
         };
 
         return contract;

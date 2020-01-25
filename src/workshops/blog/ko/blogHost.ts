@@ -5,14 +5,14 @@ import { EventManager } from "@paperbits/common/events";
 import { ViewManager, ViewManagerMode } from "@paperbits/common/ui";
 import { ContentViewModelBinder, ContentViewModel } from "../../../content/ko";
 import { ILayoutService } from "@paperbits/common/layouts";
-import { IPageService } from "@paperbits/common/pages";
+import { IBlogService } from "@paperbits/common/blogs";
 
 
 @Component({
-    selector: "page-host",
+    selector: "blog-post-host",
     template: "<!-- ko if: contentViewModel --><!-- ko widget: contentViewModel, grid: {} --><!-- /ko --><!-- /ko -->"
 })
-export class PageHost {
+export class BlogHost {
     private savingTimeout;
     public readonly contentViewModel: ko.Observable<ContentViewModel>;
 
@@ -22,14 +22,14 @@ export class PageHost {
         private readonly eventManager: EventManager,
         private readonly viewManager: ViewManager,
         private readonly layoutService: ILayoutService,
-        private readonly pageService: IPageService
+        private readonly blogService: IBlogService
     ) {
         this.contentViewModel = ko.observable();
-        this.pageKey = ko.observable();
+        this.blogPostKey = ko.observable();
     }
 
     @Param()
-    public pageKey: ko.Observable<string>;
+    public blogPostKey: ko.Observable<string>;
 
     @OnMounted()
     public async initialize(): Promise<void> {
@@ -80,13 +80,13 @@ export class PageHost {
         this.viewManager.setShutter();
 
         const route = this.router.getCurrentRoute();
-        const pageContract = await this.pageService.getPageByPermalink(route.path);
-        const pageContentContract = await this.pageService.getPageContent(pageContract.key);
+        const postContract = await this.blogService.getBlogPostByPermalink(route.path);
+        const postContentContract = await this.blogService.getBlogPostContent(postContract.key);
 
         const bindingContext = {
             navigationPath: route.path,
-            routeKind: "page",
-            page: pageContentContract // TODO: Rename "page" > "content"
+            routeKind: "blog-post",
+            content: postContentContract
         };
 
         const layoutContract = await this.layoutService.getLayoutByPermalink(route.path);

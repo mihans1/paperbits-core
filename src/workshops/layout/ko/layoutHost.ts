@@ -48,7 +48,7 @@ export class LayoutHost {
         this.viewManager.setShutter();
 
         const route = this.router.getCurrentRoute();
-        const bindingContext = { navigationPath: route.path, routeKind: "layout" };
+        const bindingContext = { navigationPath: route.path, routeKind: "layout", content: null };
         const layoutContract = await this.layoutService.getLayoutByPermalink(route.path);
         const layoutContentContract = await this.layoutService.getLayoutContent(layoutContract.key);
         const contentViewModel = await this.contentViewModelBinder.getContentViewModelByKey(layoutContentContract, bindingContext);

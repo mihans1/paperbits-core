@@ -103,7 +103,7 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
     }
 
     public async getLayoutViewModelByKey(path: string, layoutKey: string): Promise<any> {
-        const bindingContext = { navigationPath: path, routeKind: "layout" };
+        const bindingContext = { navigationPath: path, routeKind: "layout", content: null };
         const layoutContract = await this.layoutService.getLayoutByKey(layoutKey);
         const layoutModel = await this.layoutModelBinder.contractToModel(layoutContract, bindingContext);
         const layoutViewModel = this.modelToViewModel(layoutModel, null, bindingContext);
@@ -112,7 +112,7 @@ export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, Layou
     }
 
     public async getLayoutViewModel(path: string, routeKind: string = null): Promise<any> {
-        const bindingContext = { navigationPath: path, routeKind: routeKind };
+        const bindingContext = { navigationPath: path, routeKind: routeKind, content: null };
         const layoutContract = await this.layoutService.getLayoutByPermalink(path);
         const layoutModel = await this.layoutModelBinder.contractToModel(layoutContract, bindingContext);
         const layoutViewModel = this.modelToViewModel(layoutModel, null, bindingContext);
