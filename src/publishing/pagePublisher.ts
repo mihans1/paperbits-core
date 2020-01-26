@@ -1,4 +1,5 @@
 import * as Utils from "@paperbits/common/utils";
+import template from "./page.html";
 import { IPublisher, HtmlPage, HtmlPagePublisher } from "@paperbits/common/publishing";
 import { IBlobStorage } from "@paperbits/common/persistence";
 import { IPageService, PageContract } from "@paperbits/common/pages";
@@ -35,6 +36,7 @@ export class PagePublisher implements IPublisher {
             keywords: page.keywords || settings.site.keywords,
             permalink: page.permalink,
             content: pageContent,
+            template: template,
             author: settings.site.author,
             openGraph: {
                 type: page.permalink === "/" ? "website" : "article",
