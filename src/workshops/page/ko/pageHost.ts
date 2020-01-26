@@ -99,7 +99,7 @@ export class PageHost {
     }
 
     private async onRouteChange(route: Route): Promise<void> {
-        if (route.previous && route.previous.path === route.path && route.previous.metadata["routeKind"] === route.metadata["routeKind"]) {
+        if (route.previous && route.previous.path === route.path) {
             return;
         }
 

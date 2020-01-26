@@ -28,13 +28,13 @@ export class BlogPublisher implements IPublisher {
         let htmlContent: string;
 
         const buildContentPromise = new Promise(async (resolve, reject) => {
-            const layoutViewModel = await this.layoutViewModelBinder.getLayoutViewModel(post.permalink);
-            ko.applyBindingsToNode(templateDocument.body, { widget: layoutViewModel }, null);
+            // const layoutViewModel = await this.layoutViewModelBinder.getLayoutViewModel(post.permalink);
+            // ko.applyBindingsToNode(templateDocument.body, { widget: layoutViewModel }, null);
 
-            setTimeout(() => {
-                htmlContent = "<!DOCTYPE html>" + templateDocument.documentElement.outerHTML;
-                resolve();
-            }, 500);
+            // setTimeout(() => {
+            //     htmlContent = "<!DOCTYPE html>" + templateDocument.documentElement.outerHTML;
+            //     resolve();
+            // }, 500);
         });
 
         await buildContentPromise;

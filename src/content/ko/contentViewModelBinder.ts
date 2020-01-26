@@ -6,9 +6,9 @@ import { ContentModel } from "../contentModel";
 import { ViewModelBinderSelector } from "../../ko/viewModelBinderSelector";
 import { ContentHandlers } from "../contentHandlers";
 import { IWidgetBinding } from "@paperbits/common/editing";
+import { EventManager } from "@paperbits/common/events";
 import { PlaceholderViewModel } from "../../placeholder/ko";
 import { ContentModelBinder } from "..";
-import { EventManager } from "@paperbits/common/events";
 
 
 export class ContentViewModelBinder implements ViewModelBinder<ContentModel, ContentViewModel> {

@@ -48,8 +48,7 @@ export class LayoutHost {
         this.viewManager.setShutter();
 
         const route = this.router.getCurrentRoute();
-        const layoutContract = await this.layoutService.getLayoutByPermalink(route.path);
-        const layoutContentContract = await this.layoutService.getLayoutContent(layoutContract.key);
+        const layoutContentContract = await this.layoutService.getLayoutContent(this.layoutKey());
 
         const bindingContext = {
             navigationPath: route.path,
@@ -57,7 +56,7 @@ export class LayoutHost {
             content: null,
             update: "layout",
             onContentUpdate: async (updatedContentContract) => {
-                await this.layoutService.updateLayoutContent(layoutContract.key, updatedContentContract);
+                await this.layoutService.updateLayoutContent(this.layoutKey(), updatedContentContract);
             }
         };
 

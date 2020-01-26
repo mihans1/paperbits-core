@@ -1,14 +1,14 @@
 import * as Objects from "@paperbits/common/objects";
-import { LayoutViewModel } from "./layoutViewModel";
-import { LayoutModel } from "../layoutModel";
-import { LayoutModelBinder } from "../layoutModelBinder";
-import { LayoutHandlers } from "../layoutHandlers";
-import { ViewModelBinderSelector } from "../../ko/viewModelBinderSelector";
 import { IWidgetBinding } from "@paperbits/common/editing";
 import { EventManager } from "@paperbits/common/events";
 import { ModelBinderSelector, ViewModelBinder } from "@paperbits/common/widgets";
 import { ILayoutService } from "@paperbits/common/layouts";
 import { Bag } from "@paperbits/common";
+import { LayoutViewModel } from "./layoutViewModel";
+import { LayoutModel } from "../layoutModel";
+import { LayoutModelBinder } from "../layoutModelBinder";
+import { LayoutHandlers } from "../layoutHandlers";
+import { ViewModelBinderSelector } from "../../ko/viewModelBinderSelector";
 
 
 export class LayoutViewModelBinder implements ViewModelBinder<LayoutModel, LayoutViewModel> {

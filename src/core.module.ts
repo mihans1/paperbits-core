@@ -14,8 +14,6 @@ import { ButtonModule } from "./button/ko/button.module";
 import { TestimonialsModule } from "./testimonials/ko/testimonials.module";
 import { KoModule } from "./ko/ko.module";
 import { LayoutModule } from "./layout/ko/layout.module";
-import { PageModule } from "./page/ko/page.module";
-import { BlogModule } from "./blog/blog.module";
 import { ColumnModule } from "./column/ko/column.module";
 import { SectionModule } from "./section/ko/section.module";
 import { RowModule } from "./row/ko/row.module";
@@ -90,7 +88,6 @@ export class CoreModule implements IInjectorModule {
         injector.bindModule(new LayoutModule());
         // injector.bindModule(new PageModule());
         injector.bindModule(new ContentModule());
-        injector.bindModule(new BlogModule());
         injector.bindModule(new ColumnModule());
         injector.bindModule(new RowModule());
         injector.bindModule(new TextblockModule());
