@@ -24,7 +24,7 @@ export class ContentViewModelBinder implements ViewModelBinder<ContentModel, Con
 
         const updateContent = async (): Promise<void> => {
             const contentContract = {
-                type: "page",
+                type: model.type,
                 nodes: []
             };
 

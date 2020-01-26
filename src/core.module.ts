@@ -13,7 +13,6 @@ import { MapModule } from "./map/ko/map.module";
 import { ButtonModule } from "./button/ko/button.module";
 import { TestimonialsModule } from "./testimonials/ko/testimonials.module";
 import { KoModule } from "./ko/ko.module";
-import { LayoutModule } from "./layout/ko/layout.module";
 import { ColumnModule } from "./column/ko/column.module";
 import { SectionModule } from "./section/ko/section.module";
 import { RowModule } from "./row/ko/row.module";
@@ -85,8 +84,6 @@ export class CoreModule implements IInjectorModule {
 
         injector.bindModule(new KnockoutRegistrationLoaders());
         injector.bindModule(new KoModule());
-        injector.bindModule(new LayoutModule());
-        // injector.bindModule(new PageModule());
         injector.bindModule(new ContentModule());
         injector.bindModule(new ColumnModule());
         injector.bindModule(new RowModule());

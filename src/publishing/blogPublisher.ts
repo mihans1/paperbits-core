@@ -5,7 +5,6 @@ import { IPublisher } from "@paperbits/common/publishing";
 import { IBlobStorage } from "@paperbits/common/persistence";
 import { SettingsContract, ISiteService } from "@paperbits/common/sites";
 import { IMediaService, MediaContract } from "@paperbits/common/media";
-import { LayoutViewModelBinder } from "../layout/ko";
 import { ISettingsProvider } from "@paperbits/common/configuration";
 
 export class BlogPublisher implements IPublisher {
@@ -13,7 +12,6 @@ export class BlogPublisher implements IPublisher {
         private readonly blogService: IBlogService,
         private readonly siteService: ISiteService,
         private readonly outputBlobStorage: IBlobStorage,
-        private readonly layoutViewModelBinder: LayoutViewModelBinder,
         private readonly mediaService: IMediaService
     ) {
         this.publish = this.publish.bind(this);
