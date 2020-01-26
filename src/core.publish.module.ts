@@ -22,7 +22,7 @@ export class CorePublishModule implements IInjectorModule {
         injector.bind("htmlDocumentProvider", DominoHtmlDocumentProvider);
         injector.bindCollection("htmlPagePublisherPlugins");
         injector.bindToCollection("htmlPagePublisherPlugins", KnockoutHtmlPagePublisherPlugin);
-        injector.bindToCollection("htmlPagePublisherPlugins", StructuredDataHtmlPagePublisherPlugin);
-        injector.bindToCollection("htmlPagePublisherPlugins", OpenGraphHtmlPagePublisherPlugin);
+        // injector.bindToCollection("htmlPagePublisherPlugins", StructuredDataHtmlPagePublisherPlugin);
+        // injector.bindToCollection("htmlPagePublisherPlugins", OpenGraphHtmlPagePublisherPlugin);
     }
 }
