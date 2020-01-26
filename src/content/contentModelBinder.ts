@@ -38,6 +38,7 @@ export class ContentModelBinder<TModel> implements IModelBinder<TModel> {
 
     public async contractToModel(contentContract: Contract, bindingContext?: Bag<any>): Promise<TModel> {
         const contentModel = new ContentModel();
+        contentModel.type = contentContract.type;
 
         if (bindingContext[contentContract.type]) {
             contentContract = bindingContext[contentContract.type];

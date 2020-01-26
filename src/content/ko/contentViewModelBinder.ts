@@ -1,29 +1,66 @@
 import * as Objects from "@paperbits/common/objects";
 import { Bag, Contract } from "@paperbits/common";
 import { ContentViewModel } from "./contentViewModel";
-import { ViewModelBinder } from "@paperbits/common/widgets";
+import { ViewModelBinder, ModelBinderSelector } from "@paperbits/common/widgets";
 import { ContentModel } from "../contentModel";
 import { ViewModelBinderSelector } from "../../ko/viewModelBinderSelector";
 import { ContentHandlers } from "../contentHandlers";
 import { IWidgetBinding } from "@paperbits/common/editing";
 import { PlaceholderViewModel } from "../../placeholder/ko";
 import { ContentModelBinder } from "..";
+import { EventManager } from "@paperbits/common/events";
 
 
 export class ContentViewModelBinder implements ViewModelBinder<ContentModel, ContentViewModel> {
     constructor(
         private readonly viewModelBinderSelector: ViewModelBinderSelector,
-        private readonly contentModelBinder: ContentModelBinder<ContentModel>
+        private readonly contentModelBinder: ContentModelBinder<ContentModel>,
+        private readonly modelBinderSelector: ModelBinderSelector,
+        private readonly eventManager: EventManager
     ) { }
 
-    public createBinding(model: ContentModel, viewModel: ContentViewModel): void {
+    public createBinding(model: ContentModel, viewModel: ContentViewModel, bindingContext: Bag<any>): void {
+        let savingTimeout;
+
+        const updateContent = async (): Promise<void> => {
+            const contentContract = {
+                type: "page",
+                nodes: []
+            };
+
+            model.widgets.forEach(section => {
+                const modelBinder = this.modelBinderSelector.getModelBinderByModel(section);
+                contentContract.nodes.push(modelBinder.modelToContract(section));
+            });
+
+            if (bindingContext?.onContentUpdate) {
+                bindingContext.onContentUpdate(contentContract);
+            }
+        };
+
+        const scheduleUpdate = async (): Promise<void> => {
+            clearTimeout(savingTimeout);
+            savingTimeout = setTimeout(updateContent, 600);
+        };
+
         const binding: IWidgetBinding<ContentModel> = {
             displayName: "Content",
             readonly: false,
-            name: "content",
+            name: "page",
             model: model,
             handler: ContentHandlers,
-            provides: ["static", "scripts", "keyboard"]
+            provides: ["static", "scripts", "keyboard"],
+            applyChanges: async () => await this.modelToViewModel(model, viewModel, bindingContext),
+            onCreate: () => {
+                if (model.type === bindingContext.update) {
+                    this.eventManager.addEventListener("onContentUpdate", scheduleUpdate);
+                }
+            },
+            onDispose: () => {
+                if (model.type === bindingContext.update) {
+                    this.eventManager.removeEventListener("onContentUpdate", scheduleUpdate);
+                }
+            }
         };
 
         viewModel["widgetBinding"] = binding;
@@ -35,13 +72,11 @@ export class ContentViewModelBinder implements ViewModelBinder<ContentModel, Con
         }
 
         let childBindingContext: Bag<any> = {};
-        let layoutEditing = false;
 
         if (bindingContext) {
             childBindingContext = <Bag<any>>Objects.clone(bindingContext);
-            layoutEditing = !!(bindingContext?.routeKind === "layout");
-
-            childBindingContext.readonly = layoutEditing;
+            childBindingContext.readonly = model.type !== bindingContext.update;
+            childBindingContext.onContentUpdate = bindingContext.onContentUpdate;
         }
 
         const viewModels = [];
@@ -61,7 +96,7 @@ export class ContentViewModelBinder implements ViewModelBinder<ContentModel, Con
         viewModel.widgets(viewModels);
 
         if (!viewModel["widgetBinding"]) {
-            this.createBinding(model, viewModel);
+            this.createBinding(model, viewModel, bindingContext);
         }
 
         return viewModel;

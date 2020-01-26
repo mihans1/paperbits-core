@@ -9,6 +9,6 @@ export class PageModule implements IInjectorModule {
     public register(injector: IInjector): void {        
         injector.bind("pageWidget", PageViewModel);
         injector.bindToCollection("modelBinders", PageModelBinder);
-        injector.bindToCollection("viewModelBinders", PageViewModelBinder);
+        // injector.bindToCollection("viewModelBinders", PageViewModelBinder);
     }
 }

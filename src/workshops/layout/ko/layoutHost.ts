@@ -1,7 +1,7 @@
 import * as ko from "knockout";
 import { ContentViewModelBinder, ContentViewModel } from "../../../content/ko";
-import { Component, OnMounted, OnDestroyed, Param } from "@paperbits/common/ko/decorators";
-import { Router, Route } from "@paperbits/common/routing";
+import { Component, OnMounted, Param } from "@paperbits/common/ko/decorators";
+import { Router } from "@paperbits/common/routing";
 import { EventManager } from "@paperbits/common/events";
 import { ViewManager, ViewManagerMode } from "@paperbits/common/ui";
 import { ILayoutService } from "@paperbits/common/layouts";
@@ -48,11 +48,21 @@ export class LayoutHost {
         this.viewManager.setShutter();
 
         const route = this.router.getCurrentRoute();
-        const bindingContext = { navigationPath: route.path, routeKind: "layout", content: null };
         const layoutContract = await this.layoutService.getLayoutByPermalink(route.path);
         const layoutContentContract = await this.layoutService.getLayoutContent(layoutContract.key);
+
+        const bindingContext = {
+            navigationPath: route.path,
+            routeKind: "layout",
+            content: null,
+            update: "layout",
+            onContentUpdate: async (updatedContentContract) => {
+                await this.layoutService.updateLayoutContent(layoutContract.key, updatedContentContract);
+            }
+        };
+
         const contentViewModel = await this.contentViewModelBinder.getContentViewModelByKey(layoutContentContract, bindingContext);
-       
+
         this.contentViewModel(contentViewModel);
         this.viewManager.removeShutter();
     }

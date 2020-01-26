@@ -13,7 +13,6 @@ import { IBlogService } from "@paperbits/common/blogs";
     template: "<!-- ko if: contentViewModel --><!-- ko widget: contentViewModel, grid: {} --><!-- /ko --><!-- /ko -->"
 })
 export class BlogHost {
-    private savingTimeout;
     public readonly contentViewModel: ko.Observable<ContentViewModel>;
 
     constructor(
@@ -37,34 +36,6 @@ export class BlogHost {
 
         this.router.addRouteChangeListener(this.onRouteChange);
         this.eventManager.addEventListener("onDataPush", () => this.onDataPush());
-
-
-        this.eventManager.addEventListener("onContentUpdate", this.scheduleUpdate);
-    }
-
-    private async updateContent(): Promise<void> {
-        console.log("UPD");
-
-        // if (!bindingContext || !bindingContext.navigationPath) {
-        //     return;
-        // }
-
-        // const contentContract = {
-        //     type: "page",
-        //     nodes: []
-        // };
-
-        // model.widgets.forEach(section => {
-        //     const modelBinder = this.modelBinderSelector.getModelBinderByModel(section);
-        //     contentContract.nodes.push(modelBinder.modelToContract(section));
-        // });
-
-        // await this.pageService.updatePageContent(model.key, contentContract);
-    }
-
-    private async scheduleUpdate(): Promise<void> {
-        clearTimeout(this.savingTimeout);
-        this.savingTimeout = setTimeout(this.updateContent, 600);
     }
 
     /**
@@ -83,10 +54,16 @@ export class BlogHost {
         const postContract = await this.blogService.getBlogPostByPermalink(route.path);
         const postContentContract = await this.blogService.getBlogPostContent(postContract.key);
 
+        this.blogPostKey(postContract.key);
+
         const bindingContext = {
             navigationPath: route.path,
             routeKind: "blog-post",
-            content: postContentContract
+            page: postContentContract, // TODO: Rename "page" > "content",
+            update: "page",
+            onContentUpdate: async (updatedPostContract) => {
+                await this.blogService.updateBlogPostContent(postContract.key, updatedPostContract);
+            }
         };
 
         const layoutContract = await this.layoutService.getLayoutByPermalink(route.path);
@@ -109,6 +86,5 @@ export class BlogHost {
     @OnDestroyed()
     public dispose(): void {
         this.router.removeRouteChangeListener(this.onRouteChange);
-        this.eventManager.removeEventListener("onContentUpdate", this.scheduleUpdate);
     }
 }
