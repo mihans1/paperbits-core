@@ -31,7 +31,6 @@ import { WidgetSelector } from "./workshops/widgets/ko/widgetSelector";
 import { UrlSelector } from "./workshops/urls/ko/urlSelector";
 import { LayoutDesignModule } from "./layout/ko/layout.design.module";
 import { HistoryRouteHandler } from "@paperbits/common/routing";
-import { BlogHyperlinkProvider } from "@paperbits/common/blogs/blogHyperlinkProvider";
 import { UrlHyperlinkProvider } from "@paperbits/common/urls/urlHyperlinkProvider";
 import { MediaHyperlinkProvider } from "@paperbits/common/media";
 import { DragManager } from "@paperbits/common/ui/draggables";
@@ -68,7 +67,6 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindSingleton("viewManager", DefaultViewManager);
         injector.bindSingleton("tray", Tray);
         
-        injector.bind("blogHyperlinkProvider", BlogHyperlinkProvider);
         injector.bind("mediaHyperlinkProvider", MediaHyperlinkProvider);
         injector.bind("urlHyperlinkProvider", UrlHyperlinkProvider);
         injector.bind("gridEditor", GridEditor);
@@ -102,7 +100,7 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindModule(new MenuEditorModule());
         injector.bindModule(new DropbucketModule());
         injector.bindModule(new PageDesignModule());
-        injector.bindModule(new BlogDesignModule());
+        // injector.bindModule(new BlogDesignModule());
         injector.bindModule(new MediaWorkshopModule());
         injector.bindModule(new LayoutDesignModule());
         injector.bindModule(new BlockWorkshopModule());
