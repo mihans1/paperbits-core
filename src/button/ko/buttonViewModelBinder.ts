@@ -14,6 +14,17 @@ export class ButtonViewModelBinder implements ViewModelBinder<ButtonModel, Butto
     public async modelToViewModel(model: ButtonModel, viewModel?: Button, bindingContext?: Bag<any>): Promise<Button> {
         if (!viewModel) {
             viewModel = new Button();
+            viewModel["widgetBinding"] = {
+                displayName: "Button",
+                readonly: bindingContext ? bindingContext.readonly : false,
+                model: model,
+                flow: "inline",
+                editor: "button-editor",
+                applyChanges: async () => {
+                    await this.modelToViewModel(model, viewModel, bindingContext);
+                    this.eventManager.dispatchEvent("onContentUpdate");
+                }
+            };
         }
 
         viewModel.label(model.label);
@@ -23,18 +34,6 @@ export class ButtonViewModelBinder implements ViewModelBinder<ButtonModel, Butto
         if (model.styles) {
             viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles));
         }
-
-        viewModel["widgetBinding"] = {
-            displayName: "Button",
-            readonly: bindingContext ? bindingContext.readonly : false,
-            model: model,
-            flow: "inline",
-            editor: "button-editor",
-            applyChanges: async () => {
-                await this.modelToViewModel(model, viewModel, bindingContext);
-                this.eventManager.dispatchEvent("onContentUpdate");
-            }
-        };
 
         return viewModel;
     }

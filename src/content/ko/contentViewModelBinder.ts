@@ -105,6 +105,10 @@ export class ContentViewModelBinder implements ViewModelBinder<ContentModel, Con
         return model instanceof ContentModel;
     }
 
+    public canHandleViewModel(viewModel: ContentViewModel): boolean {
+        return viewModel instanceof ContentViewModel;
+    }
+
     public async getContentViewModelByKey(contentContract: Contract, bindingContext: any): Promise<any> {
         const layoutModel = await this.contentModelBinder.contractToModel(contentContract, bindingContext);
         const layoutViewModel = this.modelToViewModel(layoutModel, null, bindingContext);

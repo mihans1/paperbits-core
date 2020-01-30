@@ -19,4 +19,15 @@ export class ViewModelBinderSelector {
 
         return viewModelBinder;
     }
+
+    public getViewModelBinderByViewModel<TViewModel>(model: TViewModel): ViewModelBinder<any, any> {
+        const viewModelBinder = this.viewModelBinders.find(x => x && x.canHandleViewModel ? x.canHandleViewModel(model) : false);
+
+        if (!viewModelBinder) {
+            console.warn(`Could not find view model binder for view model: ${model.constructor["name"] || model}`);
+            return <any>(new PlaceholderViewModelBinder());
+        }
+
+        return viewModelBinder;
+    }
 }
