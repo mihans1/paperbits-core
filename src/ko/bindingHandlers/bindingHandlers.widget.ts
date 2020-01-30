@@ -1,4 +1,5 @@
 ﻿import * as ko from "knockout";
+import { IWidgetBinding } from "@paperbits/common/editing";
 
 export class WidgetBindingHandler {
     public constructor() {
@@ -19,7 +20,8 @@ export class WidgetBindingHandler {
                     const currentViewModelDispose = currentViewModel && currentViewModel["dispose"];
 
                     if (currentViewModel) {
-                        const binding = currentViewModel["widgetBinding"];
+                        // TODO: Resolve binding by view model.
+                        const binding: IWidgetBinding<any> = currentViewModel["widgetBinding"];
 
                         if (binding && binding.onDispose) {
                             binding.onDispose();
