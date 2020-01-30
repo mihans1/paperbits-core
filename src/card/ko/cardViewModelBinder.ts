@@ -64,4 +64,8 @@ export class CardViewModelBinder implements ViewModelBinder<CardModel, CardViewM
     public canHandleModel(model: CardModel): boolean {
         return model instanceof CardModel;
     }
+
+    public canHandleViewModel(viewModel: CardViewModel): boolean {
+        return viewModel instanceof CardViewModel;
+    }
 }

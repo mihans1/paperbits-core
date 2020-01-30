@@ -59,4 +59,8 @@ export class PictureViewModelBinder implements ViewModelBinder<PictureModel, Pic
     public canHandleModel(model: PictureModel): boolean {
         return model instanceof PictureModel;
     }
+
+    public canHandleViewModel(viewModel: PictureViewModel): boolean {
+        return viewModel instanceof PictureViewModel;
+    }
 }

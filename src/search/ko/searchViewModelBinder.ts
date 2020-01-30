@@ -33,4 +33,8 @@ export class SearchViewModelBinder implements ViewModelBinder<SearchModel, Searc
     public canHandleModel(model: SearchModel): boolean {
         return model instanceof SearchModel;
     }
+
+    public canHandleViewModel(viewModel: SearchViewModel): boolean {
+        return viewModel instanceof SearchViewModel;
+    }
 }

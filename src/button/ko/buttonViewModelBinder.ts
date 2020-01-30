@@ -41,4 +41,8 @@ export class ButtonViewModelBinder implements ViewModelBinder<ButtonModel, Butto
     public canHandleModel(model: ButtonModel): boolean {
         return model instanceof ButtonModel;
     }
+
+    public canHandleViewModel(viewModel: Button): boolean {
+        return viewModel instanceof Button;
+    }
 }

@@ -67,4 +67,8 @@ export class GridCellViewModelBinder implements ViewModelBinder<GridCellModel, G
     public canHandleModel(model: GridCellModel): boolean {
         return model instanceof GridCellModel;
     }
+
+    public canHandleViewModel(viewModel: GridCellViewModel): boolean {
+        return viewModel instanceof GridCellViewModel;
+    }
 }

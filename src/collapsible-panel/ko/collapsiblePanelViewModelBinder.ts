@@ -60,4 +60,8 @@ export class CollapsiblePanelViewModelBinder implements ViewModelBinder<Collapsi
     public canHandleModel(model: CollapsiblePanelModel): boolean {
         return model instanceof CollapsiblePanelModel;
     }
+
+    public canHandleViewModel(viewModel: CollapsiblePanel): boolean {
+        return viewModel instanceof CollapsiblePanel;
+    }
 }

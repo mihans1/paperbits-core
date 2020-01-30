@@ -63,4 +63,8 @@ export class GridViewModelBinder implements ViewModelBinder<GridModel, GridViewM
     public canHandleModel(model: GridModel): boolean {
         return model instanceof GridModel;
     }
+
+    public canHandleViewModel(viewModel: GridViewModel): boolean {
+        return viewModel instanceof GridViewModel;
+    }
 }

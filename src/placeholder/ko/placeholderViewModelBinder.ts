@@ -6,7 +6,12 @@ export class PlaceholderViewModelBinder implements ViewModelBinder<PlaceholderMo
     public async modelToViewModel(model: PlaceholderModel): Promise<PlaceholderViewModel> {
         return new PlaceholderViewModel(model.message);
     }
+
     public canHandleModel(model: PlaceholderModel): boolean {
         return model instanceof PlaceholderModel;
+    }
+
+    public canHandleViewModel(viewModel: PlaceholderViewModel): boolean {
+        return viewModel instanceof PlaceholderViewModel;
     }
 }

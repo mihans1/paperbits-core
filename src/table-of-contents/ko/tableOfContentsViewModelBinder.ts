@@ -41,4 +41,8 @@ export class TableOfContentsViewModelBinder implements ViewModelBinder<TableOfCo
     public canHandleModel(model: TableOfContentsModel): boolean {
         return model instanceof TableOfContentsModel;
     }
+
+    public canHandleViewModel(viewModel: TableOfContentsViewModel): boolean {
+        return viewModel instanceof TableOfContentsViewModel;
+    }
 }

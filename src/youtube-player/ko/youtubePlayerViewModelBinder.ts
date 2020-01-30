@@ -43,4 +43,8 @@ export class YoutubePlayerViewModelBinder implements ViewModelBinder<YoutubePlay
     public canHandleModel(model: YoutubePlayerModel): boolean {
         return model instanceof YoutubePlayerModel;
     }
+
+    public canHandleViewModel(viewModel: YoutubePlayerViewModel): boolean {
+        return viewModel instanceof YoutubePlayerViewModel;
+    }
 }

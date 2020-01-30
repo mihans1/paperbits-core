@@ -84,4 +84,8 @@ export class NavbarViewModelBinder implements ViewModelBinder<NavbarModel, Navba
     public canHandleModel(model: NavbarModel): boolean {
         return model instanceof NavbarModel;
     }
+
+    public canHandleViewModel(viewModel: NavbarViewModel): boolean {
+        return viewModel instanceof NavbarViewModel;
+    }
 }

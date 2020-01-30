@@ -97,4 +97,8 @@ export class MenuViewModelBinder implements ViewModelBinder<MenuModel, MenuViewM
     public canHandleModel(model: MenuModel): boolean {
         return model instanceof MenuModel;
     }
+
+    public canHandleViewModel(viewModel: MenuViewModel): boolean {
+        return viewModel instanceof MenuViewModel;
+    }
 }

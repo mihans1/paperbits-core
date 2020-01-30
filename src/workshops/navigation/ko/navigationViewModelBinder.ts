@@ -45,4 +45,8 @@ export class NavigationViewModelBinder implements ViewModelBinder<NavigationItem
     public canHandleModel(model: NavigationItemModel): boolean {
         return model instanceof NavigationItemModel;
     }
+
+    public canHandleViewModel(viewModel: NavigationItemViewModel): boolean {
+        return viewModel instanceof NavigationItemViewModel;
+    }
 }

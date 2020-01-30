@@ -35,4 +35,8 @@ export class TestimonialsViewModelBinder implements ViewModelBinder<Testimonials
     public canHandleModel(model: TestimonialsModel): boolean {
         return model instanceof TestimonialsModel;
     }
+
+    public canHandleViewModel(viewModel: TestimonialsViewModel): boolean {
+        return viewModel instanceof TestimonialsViewModel;
+    }
 }

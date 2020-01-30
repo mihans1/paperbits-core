@@ -35,4 +35,8 @@ export class Auth0LoginViewModelBinder implements ViewModelBinder<Auth0LoginMode
     public canHandleModel(model: Auth0LoginModel): boolean {
         return model instanceof Auth0LoginModel;
     }
+
+    public canHandleViewModel(viewModel: Auth0LoginViewModel): boolean {
+        return viewModel instanceof Auth0LoginViewModel;
+    }
 }

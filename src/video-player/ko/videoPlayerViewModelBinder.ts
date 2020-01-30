@@ -53,4 +53,8 @@ export class VideoPlayerViewModelBinder implements ViewModelBinder<VideoPlayerMo
     public canHandleModel(model: VideoPlayerModel): boolean {
         return model instanceof VideoPlayerModel;
     }
+
+    public canHandleViewModel(viewModel: VideoPlayerViewModel): boolean {
+        return viewModel instanceof VideoPlayerViewModel;
+    }
 }

@@ -41,4 +41,8 @@ export class TextblockViewModelBinder implements ViewModelBinder<TextblockModel,
     public canHandleModel(model: TextblockModel): boolean {
         return model instanceof TextblockModel;
     }
+
+    public canHandleViewModel(viewModel: TextblockViewModel): boolean {
+        return viewModel instanceof TextblockViewModel;
+    }
 }
