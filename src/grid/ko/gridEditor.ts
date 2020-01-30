@@ -199,7 +199,7 @@ export class GridEditor {
 
             const config: IHighlightConfig = {
                 element: this.activeHighlightedElement,
-                text: widgetBinding["displayName"],
+                text: widgetBinding.displayName,
                 color: contextualEditor.color
             };
 
