@@ -5,6 +5,8 @@ import { Router, Route } from "@paperbits/common/routing";
 import { MetaDataSetter } from "@paperbits/common/meta/metaDataSetter";
 import { SiteService } from "@paperbits/common/sites";
 import { IMediaService } from "@paperbits/common/media";
+import { StyleCompiler } from "@paperbits/common/styles";
+import { StyleManager } from "@paperbits/styles";
 
 export class HostBindingHandler {
     private readonly hostComponent: ko.Observable<any>;
@@ -15,7 +17,9 @@ export class HostBindingHandler {
         private readonly viewManager: ViewManager,
         private readonly router: Router,
         private readonly siteService: SiteService,
-        private readonly mediaService: IMediaService
+        private readonly mediaService: IMediaService,
+        private readonly styleCompiler: StyleCompiler,
+        private readonly styleManager: StyleManager
     ) {
         this.hostComponent = ko.observable();
         this.designTime = ko.observable(true);
@@ -176,6 +180,9 @@ export class HostBindingHandler {
 
         const styleElement = document.createElement("style");
         bodyElement.ownerDocument.head.appendChild(styleElement);
+
+        const styleSheet = await this.styleCompiler.getStyleSheet();
+        this.styleManager.setGlobalStyles(styleSheet);
 
         ko.applyBindingsToNode(bodyElement, { css: { design: this.designTime } }, null);
         ko.applyBindingsToNode(styleElement, { styleSheet: {} }, null);
