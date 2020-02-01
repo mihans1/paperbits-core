@@ -176,15 +176,15 @@ export class HostBindingHandler {
     }
 
     private async setRootElement(bodyElement: HTMLElement): Promise<void> {
-        ko.applyBindingsToNode(bodyElement, { component: this.hostComponent }, null);
-
         const styleElement = document.createElement("style");
         bodyElement.ownerDocument.head.appendChild(styleElement);
+
+        ko.applyBindingsToNode(bodyElement, { css: { design: this.designTime } }, null);
+        ko.applyBindingsToNode(styleElement, { styleSheet: {} }, null);
 
         const styleSheet = await this.styleCompiler.getStyleSheet();
         this.styleManager.setStyleSheet(styleSheet);
 
-        ko.applyBindingsToNode(bodyElement, { css: { design: this.designTime } }, null);
-        ko.applyBindingsToNode(styleElement, { styleSheet: {} }, null);
+        ko.applyBindingsToNode(bodyElement, { component: this.hostComponent }, null);
     }
 }
