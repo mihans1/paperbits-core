@@ -3,10 +3,12 @@ import { IPublisher, HtmlPage, HtmlPagePublisher } from "@paperbits/common/publi
 import { IBlobStorage } from "@paperbits/common/persistence";
 import { IPageService, PageContract } from "@paperbits/common/pages";
 import { ISiteService } from "@paperbits/common/sites";
-import { SitemapBuilder } from "./sitemapBuilder";
 import { Logger } from "@paperbits/common/logging";
 import { IMediaService } from "@paperbits/common/media";
+import { SitemapBuilder } from "./sitemapBuilder";
 import { SearchIndexBuilder } from "./searchIndexBuilder";
+import { StyleManager } from "@paperbits/styles";
+import { LocalStyleBuilder } from "./localStyleBuilder";
 
 
 export class PagePublisher implements IPublisher {
@@ -16,6 +18,7 @@ export class PagePublisher implements IPublisher {
         private readonly mediaService: IMediaService,
         private readonly outputBlobStorage: IBlobStorage,
         private readonly htmlPagePublisher: HtmlPagePublisher,
+        private readonly styleManager: StyleManager,
         private readonly logger: Logger
     ) { }
 
@@ -35,6 +38,10 @@ export class PagePublisher implements IPublisher {
             keywords: page.keywords || settings.site.keywords,
             permalink: page.permalink,
             content: pageContent,
+            styleReferences: [
+                `/styles/customizations.css`,
+                `${page.permalink}.css`
+            ],
             author: settings.site.author,
             openGraph: {
                 type: page.permalink === "/" ? "website" : "article",
@@ -61,6 +68,10 @@ export class PagePublisher implements IPublisher {
 
         // settings.site.faviconSourceKey
         const htmlContent = await this.renderPage(htmlPage);
+
+        const styleSheets = this.styleManager.getAllStyleSheets().slice(1);
+        const localStyleBuilder = new LocalStyleBuilder(this.outputBlobStorage);
+        localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
 
         indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
 
