@@ -74,10 +74,14 @@ export class PagePublisher implements IPublisher {
             }
         }
 
-        // settings.site.faviconSourceKey
+        // Cleaning up styles before rendering the page
+        this.styleManager.removeAllStyleSheets(); 
+
         const htmlContent = await this.renderPage(htmlPage);
 
+        // Building local styles
         const styleSheets = this.styleManager.getAllStyleSheets();
+        console.log(styleSheets);
         this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets.slice(1));
 
         indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
@@ -105,6 +109,7 @@ export class PagePublisher implements IPublisher {
         const styleSheet = await this.styleCompiler.getStyleSheet();
         this.styleManager.setStyleSheet(styleSheet);
 
+        // Building global styles
         const styleSheets = this.styleManager.getAllStyleSheets();
         this.localStyleBuilder.buildLocalStyle("styles", styleSheets.slice(0, 1));
 
