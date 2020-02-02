@@ -4,12 +4,12 @@ import { IBlobStorage } from "@paperbits/common/persistence";
 import { IPageService, PageContract } from "@paperbits/common/pages";
 import { ISiteService } from "@paperbits/common/sites";
 import { Logger } from "@paperbits/common/logging";
+import { StyleManager } from "@paperbits/styles";
 import { IMediaService } from "@paperbits/common/media";
+import { StyleCompiler } from "@paperbits/common/styles";
 import { SitemapBuilder } from "./sitemapBuilder";
 import { SearchIndexBuilder } from "./searchIndexBuilder";
-import { StyleManager } from "@paperbits/styles";
 import { LocalStyleBuilder } from "./localStyleBuilder";
-import { StyleCompiler } from "@paperbits/common/styles";
 
 
 export class PagePublisher implements IPublisher {
@@ -36,10 +36,7 @@ export class PagePublisher implements IPublisher {
 
     private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder): Promise<void> {
         const pageContent = await this.pageService.getPageContent(page.key);
-
         const styleManager = new StyleManager(null);
-        const styleSheet = await this.styleCompiler.getStyleSheet();
-        styleManager.setStyleSheet(styleSheet);
 
         const htmlPage: HtmlPage = {
             title: [page.title, settings.site.title].join(" - "),
@@ -90,7 +87,6 @@ export class PagePublisher implements IPublisher {
 
         // // Building local styles
         const styleSheets = styleManager.getAllStyleSheets();
-
         this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
 
         indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
