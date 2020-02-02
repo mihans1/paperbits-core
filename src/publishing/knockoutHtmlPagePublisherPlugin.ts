@@ -2,7 +2,6 @@ import * as ko from "knockout";
 import { HtmlPage, HtmlPagePublisherPlugin } from "@paperbits/common/publishing";
 import { ContentViewModelBinder } from "../content/ko";
 import { ILayoutService } from "@paperbits/common/layouts";
-import { Bag } from "@paperbits/common";
 
 
 export class KnockoutHtmlPagePublisherPlugin implements HtmlPagePublisherPlugin {
