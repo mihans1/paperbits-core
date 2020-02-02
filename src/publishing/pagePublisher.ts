@@ -21,7 +21,6 @@ export class PagePublisher implements IPublisher {
         private readonly mediaService: IMediaService,
         private readonly outputBlobStorage: IBlobStorage,
         private readonly htmlPagePublisher: HtmlPagePublisher,
-        private readonly styleManager: StyleManager,
         private readonly styleCompiler: StyleCompiler,
         private readonly logger: Logger
     ) {
@@ -75,14 +74,14 @@ export class PagePublisher implements IPublisher {
         }
 
         // Cleaning up styles before rendering the page
-        this.styleManager.removeAllStyleSheets(); 
+        // this.styleManager.removeAllStyleSheets(); 
 
         const htmlContent = await this.renderPage(htmlPage);
 
-        // Building local styles
-        const styleSheets = this.styleManager.getAllStyleSheets();
-        console.log(styleSheets);
-        this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets.slice(1));
+        // // Building local styles
+        // const styleSheets = this.styleManager.getAllStyleSheets();
+        // console.log(styleSheets);
+        // this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets.slice(1));
 
         indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
 
@@ -107,11 +106,11 @@ export class PagePublisher implements IPublisher {
 
     public async publish(): Promise<void> {
         const styleSheet = await this.styleCompiler.getStyleSheet();
-        this.styleManager.setStyleSheet(styleSheet);
+        // this.styleManager.setStyleSheet(styleSheet);
 
-        // Building global styles
-        const styleSheets = this.styleManager.getAllStyleSheets();
-        this.localStyleBuilder.buildLocalStyle("styles", styleSheets.slice(0, 1));
+        // // Building global styles
+        // const styleSheets = this.styleManager.getAllStyleSheets();
+        // this.localStyleBuilder.buildLocalStyle("styles", styleSheets.slice(0, 1));
 
         try {
             const pages = await this.pageService.search("");

@@ -18,8 +18,7 @@ export class HostBindingHandler {
         private readonly router: Router,
         private readonly siteService: SiteService,
         private readonly mediaService: IMediaService,
-        private readonly styleCompiler: StyleCompiler,
-        private readonly styleManager: StyleManager
+        private readonly styleCompiler: StyleCompiler
     ) {
         this.hostComponent = ko.observable();
         this.designTime = ko.observable(true);
@@ -181,10 +180,6 @@ export class HostBindingHandler {
 
         ko.applyBindingsToNode(bodyElement, { css: { design: this.designTime } }, null);
         ko.applyBindingsToNode(styleElement, { styleSheet: {} }, null);
-
-        const styleSheet = await this.styleCompiler.getStyleSheet();
-        this.styleManager.setStyleSheet(styleSheet);
-
         ko.applyBindingsToNode(bodyElement, { component: this.hostComponent }, null);
     }
 }
