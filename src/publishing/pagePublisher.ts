@@ -37,6 +37,10 @@ export class PagePublisher implements IPublisher {
     private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder): Promise<void> {
         const pageContent = await this.pageService.getPageContent(page.key);
 
+        const styleManager = new StyleManager(null);
+        const styleSheet = await this.styleCompiler.getStyleSheet();
+        styleManager.setStyleSheet(styleSheet);
+
         const htmlPage: HtmlPage = {
             title: [page.title, settings.site.title].join(" - "),
             description: page.description || settings.site.description,
@@ -57,6 +61,15 @@ export class PagePublisher implements IPublisher {
                 url: page.permalink,
                 siteName: settings.site.title
                 // image: { ... }
+            },
+            bindingContext: {
+                styleManager: styleManager,
+                navigationPath: page.permalink,
+                template: {
+                    page: {
+                        value: pageContent,
+                    }
+                }
             }
         };
 
@@ -73,15 +86,12 @@ export class PagePublisher implements IPublisher {
             }
         }
 
-        // Cleaning up styles before rendering the page
-        // this.styleManager.removeAllStyleSheets(); 
-
         const htmlContent = await this.renderPage(htmlPage);
 
         // // Building local styles
-        // const styleSheets = this.styleManager.getAllStyleSheets();
-        // console.log(styleSheets);
-        // this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets.slice(1));
+        const styleSheets = styleManager.getAllStyleSheets();
+
+        this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
 
         indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
 
@@ -105,12 +115,12 @@ export class PagePublisher implements IPublisher {
     }
 
     public async publish(): Promise<void> {
+        const styleManager = new StyleManager();
         const styleSheet = await this.styleCompiler.getStyleSheet();
-        // this.styleManager.setStyleSheet(styleSheet);
+        styleManager.setStyleSheet(styleSheet);
 
-        // // Building global styles
-        // const styleSheets = this.styleManager.getAllStyleSheets();
-        // this.localStyleBuilder.buildLocalStyle("styles", styleSheets.slice(0, 1));
+        // Building global styles
+        this.localStyleBuilder.buildLocalStyle("styles", [styleSheet]);
 
         try {
             const pages = await this.pageService.search("");

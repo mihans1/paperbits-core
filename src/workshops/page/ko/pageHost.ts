@@ -64,7 +64,6 @@ export class PageHost {
         const styleSheet = await this.styleCompiler.getStyleSheet();
         styleManager.setStyleSheet(styleSheet);
 
-
         const bindingContext = {
             styleManager: styleManager,
             navigationPath: route.path,

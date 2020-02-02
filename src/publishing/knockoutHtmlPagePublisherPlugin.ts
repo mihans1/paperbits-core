@@ -11,13 +11,12 @@ export class KnockoutHtmlPagePublisherPlugin implements HtmlPagePublisherPlugin 
         private readonly layoutService: ILayoutService
     ) { }
 
-    public async apply(document: Document, page: HtmlPage, bindingContext: Bag<any>): Promise<void> {
+    public async apply(document: Document, page: HtmlPage): Promise<void> {
         return new Promise(async (resolve, reject) => {
             try {
-                
                 const layoutContract = await this.layoutService.getLayoutByPermalink(page.permalink);
                 const layoutContentContract = await this.layoutService.getLayoutContent(layoutContract.key);
-                const layoutContentViewModel = await this.contentViewModelBinder.getContentViewModelByKey(layoutContentContract, bindingContext);
+                const layoutContentViewModel = await this.contentViewModelBinder.getContentViewModelByKey(layoutContentContract, page.bindingContext);
 
                 ko.applyBindingsToNode(document.body, { widget: layoutContentViewModel }, null);
                 setTimeout(resolve, 500);
