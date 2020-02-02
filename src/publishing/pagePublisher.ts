@@ -9,9 +9,12 @@ import { SitemapBuilder } from "./sitemapBuilder";
 import { SearchIndexBuilder } from "./searchIndexBuilder";
 import { StyleManager } from "@paperbits/styles";
 import { LocalStyleBuilder } from "./localStyleBuilder";
+import { StyleCompiler } from "@paperbits/common/styles";
 
 
 export class PagePublisher implements IPublisher {
+    private localStyleBuilder: LocalStyleBuilder;
+
     constructor(
         private readonly pageService: IPageService,
         private readonly siteService: ISiteService,
@@ -19,8 +22,11 @@ export class PagePublisher implements IPublisher {
         private readonly outputBlobStorage: IBlobStorage,
         private readonly htmlPagePublisher: HtmlPagePublisher,
         private readonly styleManager: StyleManager,
+        private readonly styleCompiler: StyleCompiler,
         private readonly logger: Logger
-    ) { }
+    ) {
+        this.localStyleBuilder = new LocalStyleBuilder(this.outputBlobStorage);
+    }
 
     public async renderPage(page: HtmlPage): Promise<string> {
         this.logger.traceEvent(`Publishing page ${page.title}...`);
@@ -39,7 +45,7 @@ export class PagePublisher implements IPublisher {
             permalink: page.permalink,
             content: pageContent,
             styleReferences: [
-                `/styles/customizations.css`,
+                `/styles/styles.css`,
                 `${page.permalink}.css`
             ],
             author: settings.site.author,
@@ -69,9 +75,8 @@ export class PagePublisher implements IPublisher {
         // settings.site.faviconSourceKey
         const htmlContent = await this.renderPage(htmlPage);
 
-        const styleSheets = this.styleManager.getAllStyleSheets().slice(1);
-        const localStyleBuilder = new LocalStyleBuilder(this.outputBlobStorage);
-        localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
+        const styleSheets = this.styleManager.getAllStyleSheets();
+        this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
 
         indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
 
@@ -95,6 +100,12 @@ export class PagePublisher implements IPublisher {
     }
 
     public async publish(): Promise<void> {
+        const styleSheet = await this.styleCompiler.getStyleSheet();
+        this.styleManager.setStyleSheet(styleSheet);
+
+        const styleSheets = this.styleManager.getAllStyleSheets();
+        this.localStyleBuilder.buildLocalStyle("/", styleSheets);
+
         try {
             const pages = await this.pageService.search("");
             const results = [];

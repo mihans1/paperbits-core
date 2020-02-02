@@ -9,6 +9,16 @@ export class LocalStyleBuilder {
     public async buildLocalStyle(permalink: string, styleSheets: StyleSheet[]): Promise<void> {
         const compiler = new JssCompiler();
         let css = "";
+        let uploadUrl;
+
+        if (permalink === "/") {
+            uploadUrl = `/styles/styles.css`;
+            styleSheets = styleSheets.slice(0, 1);
+        }
+        else {
+            uploadUrl = `${permalink}/${permalink}.css`;
+            styleSheets = styleSheets.slice(1);
+        }
 
         styleSheets.forEach(styleSheet => {
             css += " " + compiler.styleSheetToCss(styleSheet);
@@ -16,6 +26,6 @@ export class LocalStyleBuilder {
 
         const contentBytes = Utils.stringToUnit8Array(css);
 
-        await this.outputBlobStorage.uploadBlob(`${permalink}/${permalink}.css`, contentBytes, "text/css");
+        await this.outputBlobStorage.uploadBlob(uploadUrl, contentBytes, "text/css");
     }
 }
