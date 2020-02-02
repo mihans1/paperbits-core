@@ -7,8 +7,7 @@ import { ContentViewModelBinder, ContentViewModel } from "../../../content/ko";
 import { ILayoutService } from "@paperbits/common/layouts";
 import { IPageService } from "@paperbits/common/pages";
 import { Contract } from "@paperbits/common";
-import { StyleManager } from "@paperbits/styles";
-import { StyleCompiler } from "@paperbits/common/styles";
+import { StyleCompiler, StyleManager } from "@paperbits/common/styles";
 
 
 @Component({
