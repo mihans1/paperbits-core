@@ -36,7 +36,7 @@ export class PagePublisher implements IPublisher {
 
     private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder): Promise<void> {
         const pageContent = await this.pageService.getPageContent(page.key);
-        const styleManager = new StyleManager(null);
+        const styleManager = new StyleManager();
 
         const htmlPage: HtmlPage = {
             title: [page.title, settings.site.title].join(" - "),
@@ -85,7 +85,7 @@ export class PagePublisher implements IPublisher {
 
         const htmlContent = await this.renderPage(htmlPage);
 
-        // // Building local styles
+        // Building local styles
         const styleSheets = styleManager.getAllStyleSheets();
         this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
 
