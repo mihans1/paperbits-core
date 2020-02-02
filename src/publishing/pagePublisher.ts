@@ -46,7 +46,9 @@ export class PagePublisher implements IPublisher {
             content: pageContent,
             styleReferences: [
                 `/styles/styles.css`,
-                `${page.permalink}.css`
+                page.permalink === "/"
+                    ? "/styles.css"
+                    : `${page.permalink}/styles.css`
             ],
             author: settings.site.author,
             openGraph: {
@@ -76,7 +78,7 @@ export class PagePublisher implements IPublisher {
         const htmlContent = await this.renderPage(htmlPage);
 
         const styleSheets = this.styleManager.getAllStyleSheets();
-        this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
+        this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets.slice(1));
 
         indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
 
@@ -104,7 +106,7 @@ export class PagePublisher implements IPublisher {
         this.styleManager.setStyleSheet(styleSheet);
 
         const styleSheets = this.styleManager.getAllStyleSheets();
-        this.localStyleBuilder.buildLocalStyle("/", styleSheets);
+        this.localStyleBuilder.buildLocalStyle("styles", styleSheets.slice(0, 1));
 
         try {
             const pages = await this.pageService.search("");
