@@ -4,21 +4,28 @@ import { IPublisher, HtmlPage, HtmlPagePublisher } from "@paperbits/common/publi
 import { IBlobStorage } from "@paperbits/common/persistence";
 import { IPageService, PageContract } from "@paperbits/common/pages";
 import { ISiteService } from "@paperbits/common/sites";
-import { SitemapBuilder } from "./sitemapBuilder";
 import { Logger } from "@paperbits/common/logging";
 import { IMediaService } from "@paperbits/common/media";
+import { StyleCompiler, StyleManager } from "@paperbits/common/styles";
+import { SitemapBuilder } from "./sitemapBuilder";
 import { SearchIndexBuilder } from "./searchIndexBuilder";
+import { LocalStyleBuilder } from "./localStyleBuilder";
 
 
 export class PagePublisher implements IPublisher {
+    private localStyleBuilder: LocalStyleBuilder;
+
     constructor(
         private readonly pageService: IPageService,
         private readonly siteService: ISiteService,
         private readonly mediaService: IMediaService,
         private readonly outputBlobStorage: IBlobStorage,
         private readonly htmlPagePublisher: HtmlPagePublisher,
+        private readonly styleCompiler: StyleCompiler,
         private readonly logger: Logger
-    ) { }
+    ) {
+        this.localStyleBuilder = new LocalStyleBuilder(this.outputBlobStorage);
+    }
 
     public async renderPage(page: HtmlPage): Promise<string> {
         this.logger.traceEvent(`Publishing page ${page.title}...`);
@@ -29,6 +36,7 @@ export class PagePublisher implements IPublisher {
 
     private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder): Promise<void> {
         const pageContent = await this.pageService.getPageContent(page.key);
+        const styleManager = new StyleManager();
 
         const htmlPage: HtmlPage = {
             title: [page.title, settings.site.title].join(" - "),
@@ -37,6 +45,12 @@ export class PagePublisher implements IPublisher {
             permalink: page.permalink,
             content: pageContent,
             template: template,
+            styleReferences: [
+                `/styles/styles.css`,
+                page.permalink === "/"
+                    ? "/styles.css"
+                    : `${page.permalink}/styles.css`
+            ],
             author: settings.site.author,
             openGraph: {
                 type: page.permalink === "/" ? "website" : "article",
@@ -45,6 +59,15 @@ export class PagePublisher implements IPublisher {
                 url: page.permalink,
                 siteName: settings.site.title
                 // image: { ... }
+            },
+            bindingContext: {
+                styleManager: styleManager,
+                navigationPath: page.permalink,
+                template: {
+                    page: {
+                        value: pageContent,
+                    }
+                }
             }
         };
 
@@ -61,8 +84,11 @@ export class PagePublisher implements IPublisher {
             }
         }
 
-        // settings.site.faviconSourceKey
         const htmlContent = await this.renderPage(htmlPage);
+
+        // Building local styles
+        const styleSheets = styleManager.getAllStyleSheets();
+        this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
 
         indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
 
@@ -86,6 +112,13 @@ export class PagePublisher implements IPublisher {
     }
 
     public async publish(): Promise<void> {
+        const styleManager = new StyleManager();
+        const styleSheet = await this.styleCompiler.getStyleSheet();
+        styleManager.setStyleSheet(styleSheet);
+
+        // Building global styles
+        this.localStyleBuilder.buildLocalStyle("styles", [styleSheet]);
+
         try {
             const pages = await this.pageService.search("");
             const results = [];
