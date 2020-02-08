@@ -153,7 +153,7 @@ export class GridEditor {
             layoutEditing = metadata["routeKind"] === "layout";
         }
 
-        if ((!windgetIsInContent && !layoutEditing && this.viewManager.getHost().name === "page-host")) {
+        if ((!windgetIsInContent && !layoutEditing)) {
             event.preventDefault();
             event.stopPropagation();
 
