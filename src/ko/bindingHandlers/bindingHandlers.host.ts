@@ -177,7 +177,7 @@ export class HostBindingHandler {
         const styleElement = document.createElement("style");
         bodyElement.ownerDocument.head.appendChild(styleElement);
 
-        ko.applyBindingsToNode(bodyElement, { css: { design: this.designTime } }, null);
+       //  ko.applyBindingsToNode(bodyElement, { css: { design: this.designTime } }, null);
         ko.applyBindingsToNode(styleElement, { styleSheet: {} }, null);
         ko.applyBindingsToNode(bodyElement, { component: this.hostComponent }, null);
     }

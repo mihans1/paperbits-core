@@ -54,7 +54,7 @@ export class ContentViewModelBinder implements ViewModelBinder<ContentModel, Con
             model: model,
             handler: ContentHandlers,
             applyChanges: async () => await this.modelToViewModel(model, viewModel, bindingContext),
-            provides: ["static", "scripts", "keyboard"],
+            provides: ["static", "scripts", "interaction"],
             onCreate: () => {
                 if (model.type === bindingContext?.routeKind) {
                     this.eventManager.addEventListener("onContentUpdate", scheduleUpdate);

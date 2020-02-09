@@ -81,6 +81,8 @@ export class PageHost {
         const layoutContentContract = await this.layoutService.getLayoutContent(layoutContract.key);
         const contentViewModel = await this.contentViewModelBinder.getContentViewModelByKey(layoutContentContract, bindingContext);
 
+        contentViewModel["widgetBinding"].provides = ["html", "js", "interaction"];
+
         this.contentViewModel(contentViewModel);
 
         this.viewManager.removeShutter();

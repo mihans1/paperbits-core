@@ -68,6 +68,7 @@ export class CardHandlers implements IWidgetHandler {
             name: "card",
             displayName: "Card",
             iconClass: "paperbits-polaroid",
+            requires: ["html"],
             createModel: async () => {
                 const textblock: any = new TextblockModel([
                     {
