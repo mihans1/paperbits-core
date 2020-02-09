@@ -16,7 +16,7 @@ export class CardHandlers implements IWidgetHandler {
     public canAccept(dragSession: DragSession): boolean {
         return !["section", "row", "column", "card"].includes(dragSession.sourceBinding.name);
     }
-    
+
     public getContextualEditor(context: WidgetContext): IContextCommandSet {
         const cardContextualEditor: IContextCommandSet = {
             color: "#4c5866",
