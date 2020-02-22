@@ -2,14 +2,17 @@ import { TableOfContentsModel } from "./tableOfContentsModel";
 import { INavigationService, NavigationItemContract, NavigationItemModel } from "@paperbits/common/navigation";
 import { IPageService } from "@paperbits/common/pages";
 import { IModelBinder } from "@paperbits/common/editing";
+import { IPermalinkResolver } from "@paperbits/common/permalinks";
 import { IContentItemService } from "@paperbits/common/contentItems";
 import { TableOfContentsContract } from "./tableOfContentsContract";
 import { Contract, Bag } from "@paperbits/common";
 import { AnchorUtils } from "../text/anchorUtils";
 import { BlockContract } from "../text/contracts";
 
+
 export class TableOfContentsModelBinder implements IModelBinder<TableOfContentsModel> {
     constructor(
+        private readonly permalinkResolver: IPermalinkResolver,
         private readonly contentItemService: IContentItemService,
         private readonly navigationService: INavigationService,
         private readonly pageService: IPageService
@@ -37,12 +40,15 @@ export class TableOfContentsModelBinder implements IModelBinder<TableOfContentsM
         navbarItemModel.label = navigationItem.label;
 
         if (navigationItem.targetKey) {
+
+            const targetUrl = await this.permalinkResolver.getUrlByTargetKey(navigationItem.targetKey);
+            
             const contentItem = await this.contentItemService.getContentItemByKey(navigationItem.targetKey);
 
             if (contentItem) {
-                navbarItemModel.targetUrl = contentItem.permalink;
+                navbarItemModel.targetUrl = targetUrl;
 
-                if (contentItem.permalink === currentPageUrl) {
+                if (targetUrl === currentPageUrl) {
                     navbarItemModel.isActive = true;
 
                     if (contentItem.key && contentItem.key.startsWith("pages/")) {

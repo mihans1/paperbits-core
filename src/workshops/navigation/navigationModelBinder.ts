@@ -8,9 +8,7 @@ import { Contract } from "@paperbits/common/contract";
 
 export class NavigationModelBinder implements IModelBinder<NavigationItemModel> {
     constructor(
-        private readonly mediaPermalinkResolver: IPermalinkResolver,
-        private readonly navigationService: INavigationService,
-        private readonly contentItemService: IContentItemService,
+        private readonly permalinkResolver: IPermalinkResolver,
         private readonly router: Router
     ) { }
 
@@ -47,11 +45,8 @@ export class NavigationModelBinder implements IModelBinder<NavigationItemModel> 
             });
         }
         else if (contract.targetKey) {
-            const contentItem = await this.contentItemService.getContentItemByKey(contract.targetKey);
-
-            if (contentItem) {
-                model.targetUrl = contentItem.permalink;
-            }
+            const url = await this.permalinkResolver.getUrlByTargetKey(contract.targetKey);
+            model.targetUrl = url;
         }
         else {
             console.warn(`Navigation item "${model.label}" has no permalink assigned to it.`);

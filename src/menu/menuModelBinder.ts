@@ -8,12 +8,12 @@ import { MenuContract } from "./menuContract";
 import { AnchorUtils } from "../text/anchorUtils";
 import { BlockContract } from "../text/contracts";
 import { MenuModel } from "./menuModel";
-import { LocalStyles } from "@paperbits/common/styles";
+import { IPermalinkResolver } from "@paperbits/common/permalinks";
 
 
 export class MenuModelBinder implements IModelBinder<MenuModel> {
     constructor(
-        private readonly contentItemService: IContentItemService,
+        private readonly permalinkResolver: IPermalinkResolver,
         private readonly navigationService: INavigationService,
         private readonly pageService: IPageService
     ) { }
@@ -48,15 +48,11 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
             return navitemModel;
         }
 
-        const contentItem = await this.contentItemService.getContentItemByKey(contract.targetKey);
+        const targetUrl = await this.permalinkResolver.getUrlByTargetKey(contract.targetKey);
 
-        if (!contentItem) {
-            return navitemModel;
-        }
+        navitemModel.targetUrl = targetUrl;
 
-        navitemModel.targetUrl = contentItem.permalink;
-
-        if (contentItem.permalink === permalink) {
+        if (targetUrl === permalink) {
             navitemModel.isActive = true;
         }
 
