@@ -21,7 +21,7 @@ import { TextblockModule } from "./textblock/ko/textblock.module";
 import { BackgroundModelBinder } from "@paperbits/common/widgets/background";
 import { KnockoutRegistrationLoaders } from "./ko/knockout.loaders";
 import { ViewModelBinderSelector } from "./ko/viewModelBinderSelector";
-import { PermalinkResolver } from "@paperbits/common/permalinks";
+import { PermalinkResolver, PermalinkService } from "@paperbits/common/permalinks";
 import { MediaPermalinkResolver } from "@paperbits/common/media/mediaPermalinkResolver";
 import { XmlHttpRequestClient } from "@paperbits/common/http";
 import { DefaultEventManager, GlobalEventHandler } from "@paperbits/common/events";
@@ -65,6 +65,7 @@ export class CoreModule implements IInjectorModule {
 
         /*** Services ***/
         injector.bindSingleton("contentItemService", ContentItemService);
+        injector.bindSingleton("permalinkService", PermalinkService);
         injector.bindSingleton("widgetService", WidgetService);
         injector.bindSingleton("layoutService", LayoutService);
         injector.bindSingleton("pageService", PageService);
