@@ -38,10 +38,11 @@ export class PageDetailsWorkshop {
     @OnMounted()
     public async onMounted(): Promise<void> {
         const seoSetting = await this.settingsProvider.getSetting<boolean>("enableSeo");
+        
         if (seoSetting) {
             this.isSeoEnabled(seoSetting);
         }
-        
+
         this.pageItem.title
             .extend(<any>{ required: true, onlyValid: true })
             .subscribe(this.updatePage);
@@ -74,7 +75,7 @@ export class PageDetailsWorkshop {
         const permalink = this.pageItem.permalink();
         this.router.updateHistory(permalink, this.pageItem.title());
 
-        await this.updatePage();
+        await this.pageService.updatePagePemalink(this.pageItem.key, permalink);
     }
 
     public async deletePage(): Promise<void> {
