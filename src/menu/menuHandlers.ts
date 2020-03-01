@@ -7,7 +7,7 @@ export class MenuHandlers implements IWidgetHandler {
             name: "menu",
             displayName: "Menu",
             iconClass: "paperbits-menu-34",
-            requires: ["html", "js"],
+            requires: [],
             createModel: async () => new MenuModel()
         };
 
