@@ -59,13 +59,14 @@ export class NavbarViewModelBinder implements ViewModelBinder<NavbarModel, Navba
         viewModel.pictureHeight(model.pictureHeight);
 
         if (model.styles) {
-            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles));
+            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles, bindingContext?.styleManager));
         }
 
         viewModel["widgetBinding"] = {
             displayName: "Navigation bar",
             readonly: bindingContext ? bindingContext.readonly : false,
             model: model,
+            draggable: true,
             applyChanges: async () => {
                 await this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");

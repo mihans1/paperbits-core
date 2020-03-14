@@ -35,7 +35,7 @@ export class CollapsiblePanelViewModelBinder implements ViewModelBinder<Collapsi
         }
 
         if (model.styles) {
-            const styleModel = await this.styleCompiler.getStyleModelAsync(model.styles);
+            const styleModel = await this.styleCompiler.getStyleModelAsync(model.styles, bindingContext?.styleManager);
             viewModel.styles(styleModel);
         }
 
@@ -45,6 +45,7 @@ export class CollapsiblePanelViewModelBinder implements ViewModelBinder<Collapsi
             displayName: "Collapsible panel",
             readonly: bindingContext ? bindingContext.readonly : false,
             model: model,
+            draggable: true,
             flow: "inline",
             editor: "collapsible-panel-editor",
             handler: CollapsiblePanelHandlers,

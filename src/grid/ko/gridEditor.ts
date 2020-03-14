@@ -6,6 +6,7 @@ import { Keys } from "@paperbits/common/keyboard";
 import { IWidgetService } from "@paperbits/common/widgets";
 import { Router } from "@paperbits/common/routing";
 import { EventManager } from "@paperbits/common/events";
+import { ContentModel } from "../../content";
 
 export class GridEditor {
     private activeHighlightedElement: HTMLElement;
@@ -65,6 +66,7 @@ export class GridEditor {
             binding = GridHelper.getWidgetBinding(element);
         }
 
+
         let parentModel;
         const parentBinding = GridHelper.getParentWidgetBinding(element);
 
@@ -78,7 +80,30 @@ export class GridEditor {
             model: model,
             binding: binding,
             half: half,
-            providers: providers
+            providers: providers,
+            switchToParent: (modelType: any) => {
+                const stack = GridHelper.getWidgetStack(element);
+                const stackItem = stack.find(x => x.binding.model instanceof modelType);
+
+                if (!stackItem) {
+                    return;
+                }
+
+                const contextualEditor = this.getContextualEditor(stackItem.element, "top");
+
+                if (!contextualEditor) {
+                    return;
+                }
+
+                const config: IHighlightConfig = {
+                    element: stackItem.element,
+                    text: stackItem.binding.displayName,
+                    color: contextualEditor.color
+                };
+
+                this.viewManager.setSelectedElement(config, contextualEditor);
+                this.selectedContextualEditor = contextualEditor;
+            }
         };
 
         let contextualEditor: IContextCommandSet;
@@ -142,7 +167,7 @@ export class GridEditor {
 
         const element = this.activeHighlightedElement;
         const bindings = GridHelper.getParentWidgetBindings(element);
-        const windgetIsInContent = bindings.some(x => x.name === "page" || x.name === "email-layout");
+        const windgetIsInContent = bindings.some(x => x.model instanceof ContentModel || x.name === "email-layout");
 
         let layoutEditing = false;
 
@@ -152,7 +177,7 @@ export class GridEditor {
             layoutEditing = metadata["routeKind"] === "layout";
         }
 
-        if ((!windgetIsInContent && !layoutEditing && this.viewManager.getHost().name === "page-host")) {
+        if ((!windgetIsInContent && !layoutEditing)) {
             event.preventDefault();
             event.stopPropagation();
 

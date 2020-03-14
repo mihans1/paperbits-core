@@ -11,13 +11,12 @@ import {
     BackgroundStylePluginConfig,
     TypographyStylePluginConfig,
     MarginStylePluginConfig,
-    SizeStylePluginConfig
+    SizeStylePluginConfig,
+    BoxStylePluginConfig
 } from "@paperbits/styles/contracts";
-
-
-const styleKeySnapTop = "utils/block/snapToTop";
-const styleKeySnapBottom = "utils/block/snapToBottom";
-const styleKeyStretch = "utils/block/stretch";
+import { ChangeRateLimit } from "@paperbits/common/ko/consts";
+import { EventManager } from "@paperbits/common/events/eventManager";
+import { CommonEvents } from "@paperbits/common/events";
 
 @Component({
     selector: "layout-section-editor",
@@ -27,34 +26,23 @@ export class SectionEditor {
     public readonly stickTo: ko.Observable<string>;
     public readonly background: ko.Observable<BackgroundStylePluginConfig>;
     public readonly typography: ko.Observable<TypographyStylePluginConfig>;
+    public readonly box: ko.Observable<BoxStylePluginConfig>;
+    public readonly sizeConfig: ko.Observable<SizeStylePluginConfig>;
     public readonly stretch: ko.Observable<boolean>;
 
-    public readonly minWidth: ko.Observable<string>;
-    public readonly maxWidth: ko.Observable<string>;
-    public readonly minHeight: ko.Observable<string>;
-    public readonly maxHeight: ko.Observable<string>;
+   
+    private gridModel: GridModel;
 
-    public readonly marginTop: ko.Observable<string>;
-    public readonly marginLeft: ko.Observable<string>;
-    public readonly marginRight: ko.Observable<string>;
-    public readonly marginBottom: ko.Observable<string>;
-
-    constructor(private readonly viewManager: ViewManager) {
-        this.initialize = this.initialize.bind(this);
-        this.onBackgroundUpdate = this.onBackgroundUpdate.bind(this);
-        this.onTypographyUpdate = this.onTypographyUpdate.bind(this);
+    constructor(
+        private readonly viewManager: ViewManager,
+        private readonly eventManager: EventManager
+    ) {
         this.stickTo = ko.observable<string>("none");
         this.stretch = ko.observable<boolean>(false);
         this.background = ko.observable<BackgroundStylePluginConfig>();
         this.typography = ko.observable<TypographyStylePluginConfig>();
-        this.minWidth = ko.observable<string>();
-        this.maxWidth = ko.observable<string>();
-        this.minHeight = ko.observable<string>();
-        this.maxHeight = ko.observable<string>();
-        this.marginTop = ko.observable<string>();
-        this.marginLeft = ko.observable<string>();
-        this.marginRight = ko.observable<string>();
-        this.marginBottom = ko.observable<string>();
+        this.sizeConfig = ko.observable<SizeStylePluginConfig>();
+        this.box = ko.observable<BoxStylePluginConfig>();
     }
 
     @Param()
@@ -65,6 +53,17 @@ export class SectionEditor {
 
     @OnMounted()
     public async initialize(): Promise<void> {
+        this.updateObservables();
+        this.stickTo.extend(ChangeRateLimit).subscribe(this.applyChanges);
+        this.stretch.extend(ChangeRateLimit).subscribe(this.applyChanges);
+        this.background.extend(ChangeRateLimit).subscribe(this.applyChanges);
+        this.typography.extend(ChangeRateLimit).subscribe(this.applyChanges);
+        this.box.extend(ChangeRateLimit).subscribe(this.applyChanges);
+        this.sizeConfig.extend(ChangeRateLimit).subscribe(this.applyChanges);
+        this.eventManager.addEventListener(CommonEvents.onViewportChange, this.updateObservables);
+    }
+
+    private updateObservables(): void {
         const viewport = this.viewManager.getViewport();
 
         if (this.model.styles) {
@@ -77,7 +76,7 @@ export class SectionEditor {
                 }
             }
 
-            const stickToStyles = <any>Objects.getObjectAt(`instance/stickTo/${viewport}`, this.model.styles);
+            const stickToStyles = Objects.getObjectAt<string>(`instance/stickTo/${viewport}`, this.model.styles);
 
             if (stickToStyles) {
                 this.stickTo(stickToStyles);
@@ -87,39 +86,13 @@ export class SectionEditor {
             this.stretch(!!stretchStyle);
         }
 
-        const gridModel = <GridModel>this.model.widgets[0];
-        const gridStyles = gridModel.styles;
-        const containerSizeStyles = <any>Objects.getObjectAt(`instance/size/${viewport}`, gridStyles);
-        const marginStyles = <any>Objects.getObjectAt(`instance/margin/${viewport}`, gridStyles);
+        this.gridModel = <GridModel>this.model.widgets[0];
+        const gridStyles = this.gridModel.styles;
+        const containerSizeStyles = Objects.getObjectAt<SizeStylePluginConfig>(`instance/size/${viewport}`, gridStyles);
+        const marginStyles = Objects.getObjectAt<MarginStylePluginConfig>(`instance/margin/${viewport}`, gridStyles);
 
-        if (containerSizeStyles) {
-            this.minWidth(containerSizeStyles.minWidth);
-            this.maxWidth(containerSizeStyles.maxWidth);
-            this.minHeight(containerSizeStyles.minHeight);
-            this.maxHeight(containerSizeStyles.maxHeight);
-        }
-
-        if (marginStyles) {
-            this.marginTop(marginStyles.top);
-            this.marginLeft(marginStyles.left);
-            this.marginRight(marginStyles.right);
-            this.marginBottom(marginStyles.bottom);
-        }
-
-        this.stickTo.subscribe(this.applyChanges);
-        this.stretch.subscribe(this.applyChanges);
-        this.background.subscribe(this.applyChanges);
-        this.typography.subscribe(this.applyChanges);
-
-        this.minWidth.subscribe(this.applyChanges);
-        this.maxWidth.subscribe(this.applyChanges);
-        this.minHeight.subscribe(this.applyChanges);
-        this.maxHeight.subscribe(this.applyChanges);
-
-        this.marginTop.subscribe(this.applyChanges);
-        this.marginLeft.subscribe(this.applyChanges);
-        this.marginRight.subscribe(this.applyChanges);
-        this.marginBottom.subscribe(this.applyChanges);
+        this.box({ margin: marginStyles });
+        this.sizeConfig(containerSizeStyles);
     }
 
     /**
@@ -133,28 +106,12 @@ export class SectionEditor {
             this.model.styles.instance.key = Utils.randomClassName();
         }
 
-        const gridModel = <GridModel>this.model.widgets[0];
-        const gridStyles = gridModel.styles;
+        const gridStyles = this.gridModel.styles;
 
-        const containerSizeStyles: SizeStylePluginConfig = {
-            minWidth: this.minWidth(),
-            maxWidth: this.maxWidth(),
-            minHeight: this.minHeight(),
-            maxHeight: this.maxHeight()
-        };
-
-        Objects.cleanupObject(containerSizeStyles);
+        const containerSizeStyles: SizeStylePluginConfig = this.sizeConfig();
         Objects.setValue(`instance/size/${viewport}`, gridStyles, containerSizeStyles);
 
-        const marginStyle: MarginStylePluginConfig = {
-            top: this.marginTop(),
-            bottom: this.marginBottom(),
-            left: "auto",
-            right: "auto"
-            // Uncomment when box editor gets support for "auto".
-            // marginLeft: this.marginLeft(),
-            // marginRight: this.marginRight()
-        };
+        const marginStyle = this.box().margin;
 
         Objects.cleanupObject(marginStyle);
         Objects.setValue(`instance/margin/${viewport}`, gridStyles, marginStyle);
@@ -165,14 +122,20 @@ export class SectionEditor {
     }
 
     public onBackgroundUpdate(background: BackgroundStylePluginConfig): void {
-        Objects.setStructure("styles/instance/background", this.model);
-        this.model.styles.instance["background"] = background;
+        Objects.setValue("instance/background", this.model.styles, background);
         this.applyChanges();
     }
 
     public onTypographyUpdate(typography: TypographyStylePluginConfig): void {
-        Objects.setStructure("styles/instance/typography", this.model);
-        this.model.styles.instance["typography"] = typography;
+        Objects.setValue("instance/typography", this.model.styles, typography);
         this.applyChanges();
+    }
+
+    public onBoxUpdate(pluginConfig: BoxStylePluginConfig): void {
+        this.box(pluginConfig);
+    }
+
+    public onSizeUpdate(sizeConfig: SizeStylePluginConfig): void {
+        this.sizeConfig(sizeConfig);
     }
 }

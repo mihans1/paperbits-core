@@ -35,7 +35,7 @@ export class CardViewModelBinder implements ViewModelBinder<CardModel, CardViewM
         }
 
         if (model.styles) {
-            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles));
+            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles, bindingContext?.styleManager));
         }
 
         viewModel.widgets(widgetViewModels);
@@ -47,6 +47,7 @@ export class CardViewModelBinder implements ViewModelBinder<CardModel, CardViewM
                 readonly: bindingContext ? bindingContext.readonly : false,
                 flow: "inline",
                 model: model,
+                draggable: true,
                 editor: "card-editor",
                 handler: CardHandlers,
                 applyChanges: async (changes) => {

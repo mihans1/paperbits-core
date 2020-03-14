@@ -13,13 +13,9 @@ import { MapModule } from "./map/ko/map.module";
 import { ButtonModule } from "./button/ko/button.module";
 import { TestimonialsModule } from "./testimonials/ko/testimonials.module";
 import { KoModule } from "./ko/ko.module";
-import { LayoutModule } from "./layout/ko/layout.module";
-import { PageModule } from "./page/ko/page.module";
-import { BlogModule } from "./blog/blog.module";
 import { ColumnModule } from "./column/ko/column.module";
 import { SectionModule } from "./section/ko/section.module";
 import { RowModule } from "./row/ko/row.module";
-import { GoogleTagManager } from "./gtm/ko/gtm";
 import { TextblockModule } from "./textblock/ko/textblock.module";
 import { BackgroundModelBinder } from "@paperbits/common/widgets/background";
 import { KnockoutRegistrationLoaders } from "./ko/knockout.loaders";
@@ -45,6 +41,7 @@ import { GridModule } from "./grid-layout-section/ko/grid.module";
 import { GridCellModule } from "./grid-cell/ko/gridCell.module";
 import { CollapsiblePanelModule } from "./collapsible-panel/ko";
 import { MenuModule } from "./menu/ko";
+import { ContentModule } from "./content/ko";
 
 
 /**
@@ -85,14 +82,11 @@ export class CoreModule implements IInjectorModule {
 
         injector.bind("modelBinderSelector", ModelBinderSelector);
         injector.bind("viewModelBinderSelector", ViewModelBinderSelector);
-        injector.bind("gtm", GoogleTagManager);
         injector.bind("backgroundModelBinder", BackgroundModelBinder);
 
         injector.bindModule(new KnockoutRegistrationLoaders());
         injector.bindModule(new KoModule());
-        injector.bindModule(new LayoutModule());
-        injector.bindModule(new PageModule());
-        injector.bindModule(new BlogModule());
+        injector.bindModule(new ContentModule());
         injector.bindModule(new ColumnModule());
         injector.bindModule(new RowModule());
         injector.bindModule(new TextblockModule());

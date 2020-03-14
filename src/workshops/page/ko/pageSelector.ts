@@ -72,7 +72,7 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
 
     public async selectPage(page: PageItem): Promise<void> {
         const prev = this.selectedPage();
-        
+
         if (prev) {
             prev.isSelected(false);
 
@@ -106,18 +106,22 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
 
     private async getAnchors(pageItem: PageItem): Promise<void> {
         const pageContent = await this.pageService.getPageContent(pageItem.key);
-        const children = AnchorUtils.getHeadingNodes(pageContent);
+        const children = AnchorUtils.getHeadingNodes(pageContent, 1, 6);
         let selectedAnchor: AnchorItem;
 
-        const anchors = children.map(item => {
-            const anchor = new AnchorItem();
-            anchor.shortTitle = item.nodes[0].text;
-            anchor.elementId = item.attrs.id;
-            if (pageItem.selectedAnchor && pageItem.selectedAnchor.elementId === anchor.elementId) {
-                selectedAnchor = anchor;
-            }
-            return anchor;
-        });
+        const anchors = children
+            .filter(item => item.nodes?.length > 0)
+            .map(item => {
+                const anchor = new AnchorItem();
+                anchor.shortTitle = item.nodes[0].text;
+                anchor.elementId = item.attrs.id;
+
+                if (pageItem.selectedAnchor && pageItem.selectedAnchor.elementId === anchor.elementId) {
+                    selectedAnchor = anchor;
+                }
+
+                return anchor;
+            });
 
         pageItem.anchors(anchors);
 

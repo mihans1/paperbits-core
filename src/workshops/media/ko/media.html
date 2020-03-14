@@ -28,10 +28,10 @@
     <spinner></spinner>
     <!-- /ko -->
 
-    <div class="flex-item flex-item-grow list" role="list"
+    <div class="flex flex-row flex-wrap flex-item flex-item-grow" role="list"
         data-bind="foreach: { data: mediaItems, as: 'media' }, scrollable: true">
         <a href="#" role="listitem" class="list-item list-item-image"
-            data-bind="click: $component.selectMedia, css: { selected: media == $component.selectedMediaItem() }, attr: { 'aria-label': media.fileName() }, dragsource: { sticky: true, sourceData: $data, ondragstart: $parent.onDragStart, ondragend: $parent.onDragEnd }">
+            data-bind="click: $component.selectMedia, css: { selected: media == $component.selectedMediaItem() }, attr: { 'aria-label': media.fileName() }">
             <span class="thumbnail"
                 data-bind="style: { 'background-image': 'url('+media.thumbnailUrl()+')' }, attr: { title: media.fileName() }, event: { keydown: $component.onKeyDown }">
             </span>

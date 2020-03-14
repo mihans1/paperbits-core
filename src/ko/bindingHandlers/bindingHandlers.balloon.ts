@@ -12,6 +12,7 @@ export interface BalloonOptions {
     isOpen: any;
     onOpen?: () => void;
     onClose?: () => void;
+    closeTimeout?: number;
 }
 
 export class BalloonBindingHandler {
@@ -24,6 +25,7 @@ export class BalloonBindingHandler {
                 let balloonY;
                 let balloonElement;
                 let balloonIsOpen = false;
+                let closeTimeout;
 
                 let componentConfig: IComponent;
 
@@ -34,8 +36,16 @@ export class BalloonBindingHandler {
                     componentConfig = options.component;
                 }
 
+                const resetCloseTimeout = () => {
+                    if (options.closeTimeout) {
+                        clearTimeout(closeTimeout);
+                        closeTimeout = setTimeout(close, options.closeTimeout);
+                    }
+                };
+
                 componentConfig.oncreate = (model, element) => {
                     balloonElement = element;
+
                     setTimeout(updatePosition, 100); // Let element chance to render and determine sizes
                 };
 
@@ -86,12 +96,16 @@ export class BalloonBindingHandler {
                 };
 
                 const open = (): void => {
-                    viewManager.addBalloon(componentConfig);
+                    resetCloseTimeout();
 
-                    balloonIsOpen = true;
+                    if (!balloonIsOpen) {
+                        viewManager.addBalloon(componentConfig);
 
-                    if (options.onOpen) {
-                        options.onOpen();
+                        balloonIsOpen = true;
+
+                        if (options.onOpen) {
+                            options.onOpen();
+                        }
                     }
                 };
 
@@ -110,8 +124,12 @@ export class BalloonBindingHandler {
                 };
 
                 const toggle = (): void => {
+                    resetCloseTimeout();
+
                     if (balloonIsOpen) {
-                        close();
+                        if (!options.closeTimeout) {
+                            close();
+                        }
                     }
                     else {
                         open();

@@ -15,7 +15,6 @@ import { SectionEditorModule } from "./section/ko/sectionEditor.module";
 import { RowEditorModule } from "./row/ko/rowEditor.module";
 import { BlockWorkshopModule } from "./workshops/block/ko/block.module";
 import { BlogDesignModule } from "./workshops/blog/ko/blog.design.module";
-import { LayoutWorkshopModule } from "./workshops/layout/ko/layout.module";
 import { PageDesignModule } from "./workshops/page/ko/page.design.module";
 import { MediaWorkshopModule } from "./workshops/media/ko/media.module";
 import { NavigationWorkshopModule } from "./workshops/navigation/ko/navigation.module";
@@ -31,11 +30,8 @@ import { LityLightbox } from "@paperbits/common/ui";
 import { HyperlinkSelector } from "./workshops/hyperlinks/ko/hyperlinkSelector";
 import { WidgetSelector } from "./workshops/widgets/ko/widgetSelector";
 import { UrlSelector } from "./workshops/urls/ko/urlSelector";
-import { PageEditorModule } from "./page/ko/pageEditor.module";
-import { LayoutEditorModule } from "./layout/ko/layoutEditor.module";
+import { LayoutDesignModule } from "./layout/ko/layout.design.module";
 import { HistoryRouteHandler } from "@paperbits/common/routing";
-import { PageHyperlinkProvider } from "@paperbits/common/pages";
-import { BlogHyperlinkProvider } from "@paperbits/common/blogs/blogHyperlinkProvider";
 import { UrlHyperlinkProvider } from "@paperbits/common/urls/urlHyperlinkProvider";
 import { MediaHyperlinkProvider } from "@paperbits/common/media";
 import { DragManager } from "@paperbits/common/ui/draggables";
@@ -49,8 +45,6 @@ import { CardEditorModule } from "./card/ko/cardEditor.module";
 import { MediaPermalinkResolver } from "@paperbits/common/media/mediaPermalinkResolver.design";
 import { GridEditorModule } from "./grid-layout-section/ko/gridEditor.module";
 import { GridCellEditorModule } from "./grid-cell/ko/gridCellEditor.module";
-import { PageHost } from "./workshops/page/ko/pageHost";
-import { LayoutHost } from "./workshops/layout/ko/layoutHost";
 import { Tray } from "./workshops/tray/tray";
 import { CollapsiblePanelEditorModule } from "./collapsible-panel/ko";
 import { MenuEditorModule } from "./menu/ko";
@@ -60,6 +54,7 @@ import { RoleSelector, RoleInput } from "./workshops/roles/ko";
 import "./ko/bindingHandlers/bindingHandlers.command";
 import "./ko/bindingHandlers/bindingHandlers.dialog";
 import "./ko/bindingHandlers/bindingHandlers.activate";
+import { ContentEditorModule } from "./content/ko";
 
 
 export class CoreDesignModule implements IInjectorModule {
@@ -72,8 +67,7 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindCollection("hyperlinkProviders");
         injector.bindSingleton("viewManager", DefaultViewManager);
         injector.bindSingleton("tray", Tray);
-        injector.bind("pageHyperlinkProvider", PageHyperlinkProvider);
-        injector.bind("blogHyperlinkProvider", BlogHyperlinkProvider);
+        
         injector.bind("mediaHyperlinkProvider", MediaHyperlinkProvider);
         injector.bind("urlHyperlinkProvider", UrlHyperlinkProvider);
         injector.bind("gridEditor", GridEditor);
@@ -96,8 +90,6 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bind("widgetSelector", WidgetSelector);
         injector.bind("urlSelector", UrlSelector);
         injector.bind("confirmation", Confirmation);
-        injector.bind("pageHost", PageHost);
-        injector.bind("layoutHost", LayoutHost);
         injector.bind("roleSelector", RoleSelector);
         injector.bind("roleInput", RoleInput);
         injector.bind("spinner", Spinner);
@@ -111,9 +103,9 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindModule(new MenuEditorModule());
         injector.bindModule(new DropbucketModule());
         injector.bindModule(new PageDesignModule());
-        injector.bindModule(new BlogDesignModule());
+        // injector.bindModule(new BlogDesignModule());
         injector.bindModule(new MediaWorkshopModule());
-        injector.bindModule(new LayoutWorkshopModule());
+        injector.bindModule(new LayoutDesignModule());
         injector.bindModule(new BlockWorkshopModule());
         injector.bindModule(new NavigationWorkshopModule());
         injector.bindModule(new SettingsWorkshopModule());
@@ -122,8 +114,7 @@ export class CoreDesignModule implements IInjectorModule {
         injector.bindModule(new SectionEditorModule());
         injector.bindModule(new GridEditorModule());
         injector.bindModule(new GridCellEditorModule());
-        injector.bindModule(new LayoutEditorModule());
-        injector.bindModule(new PageEditorModule());
+        injector.bindModule(new ContentEditorModule());
         injector.bindModule(new CardEditorModule());
         injector.bindModule(new CollapsiblePanelEditorModule());
         injector.bindToCollection("hyperlinkProviders", UrlHyperlinkProvider);

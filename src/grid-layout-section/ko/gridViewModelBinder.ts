@@ -38,7 +38,7 @@ export class GridViewModelBinder implements ViewModelBinder<GridModel, GridViewM
         viewModel.widgets(viewModels);
 
         if (model.styles) {
-            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles));
+            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles, bindingContext?.styleManager));
         }
 
         const binding: IWidgetBinding<GridModel> = {
@@ -46,6 +46,7 @@ export class GridViewModelBinder implements ViewModelBinder<GridModel, GridViewM
             displayName: "Grid",
             readonly: bindingContext ? bindingContext.readonly : false,
             model: model,
+            draggable: false,
             flow: "block",
             editor: "grid-layout-grid-editor",
             handler: GridHandlers,

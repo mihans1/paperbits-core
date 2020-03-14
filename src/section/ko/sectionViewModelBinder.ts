@@ -38,7 +38,7 @@ export class SectionViewModelBinder implements ViewModelBinder<SectionModel, Sec
         viewModel.widgets(viewModels);
 
         if (model.styles) {
-            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles));
+            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles, bindingContext?.styleManager));
         }
 
         const binding: IWidgetBinding<SectionModel> = {
@@ -46,6 +46,7 @@ export class SectionViewModelBinder implements ViewModelBinder<SectionModel, Sec
             displayName: "Section",
             readonly: bindingContext ? bindingContext.readonly : false,
             model: model,
+            draggable: true,
             flow: "block",
             editor: "layout-section-editor",
             handler: SectionHandlers,

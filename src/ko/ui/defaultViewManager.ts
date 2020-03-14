@@ -120,6 +120,7 @@ export class DefaultViewManager implements ViewManager {
         if (event.ctrlKey || event.metaKey) {
             return;
         }
+
         this.designTime(true);
     }
 
@@ -146,7 +147,6 @@ export class DefaultViewManager implements ViewManager {
     private onRouteChange(): void {
         this.clearContextualEditors();
         this.closeView();
-        this.setHost({ name: "page-host" });
     }
 
     public getCurrentJourney(): string {

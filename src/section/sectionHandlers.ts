@@ -4,6 +4,7 @@ import { WidgetContext } from "@paperbits/common/editing";
 import { SectionModel } from "./sectionModel";
 import { RowModel } from "../row/rowModel";
 import { EventManager } from "@paperbits/common/events";
+import { BlockType } from "@paperbits/common/blocks";
 
 
 export class SectionHandlers {
@@ -67,7 +68,10 @@ export class SectionHandlers {
                         heading: "Add to library",
                         component: {
                             name: "add-block-dialog",
-                            params: { blockModel: context.model, blockType: "section" }
+                            params: {
+                                blockModel: context.model,
+                                blockType: BlockType.saved
+                            }
                         },
                         resize: "vertically horizontally"
                     };

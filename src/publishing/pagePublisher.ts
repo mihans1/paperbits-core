@@ -1,49 +1,105 @@
 import * as Utils from "@paperbits/common/utils";
-import { IPublisher, HtmlPage, HtmlPagePublisher } from "@paperbits/common/publishing";
+import template from "./page.html";
+import { minify } from "html-minifier-terser";
+import { IPublisher, HtmlPage, HtmlPagePublisher, SearchIndexBuilder } from "@paperbits/common/publishing";
 import { IBlobStorage } from "@paperbits/common/persistence";
 import { IPageService, PageContract } from "@paperbits/common/pages";
 import { ISiteService } from "@paperbits/common/sites";
-import { SitemapBuilder } from "./sitemapBuilder";
 import { Logger } from "@paperbits/common/logging";
 import { ILocaleService } from "@paperbits/common/localization";
 import { IMediaService } from "@paperbits/common/media";
-import { SearchIndexBuilder } from "./searchIndexBuilder";
+import { StyleCompiler, StyleManager } from "@paperbits/common/styles";
+import { SitemapBuilder } from "@paperbits/common/publishing/sitemapBuilder";
+import { LocalStyleBuilder } from "./localStyleBuilder";
 
 
 export class PagePublisher implements IPublisher {
+    private localStyleBuilder: LocalStyleBuilder;
+
     constructor(
         private readonly pageService: IPageService,
         private readonly siteService: ISiteService,
         private readonly mediaService: IMediaService,
         private readonly outputBlobStorage: IBlobStorage,
         private readonly htmlPagePublisher: HtmlPagePublisher,
+        private readonly styleCompiler: StyleCompiler,
         private readonly localeService: ILocaleService,
         private readonly logger: Logger
-    ) { }
+    ) {
+        this.localStyleBuilder = new LocalStyleBuilder(this.outputBlobStorage);
+    }
 
     public async renderPage(page: HtmlPage): Promise<string> {
         this.logger.traceEvent(`Publishing page ${page.title}...`);
-
         const htmlContent = await this.htmlPagePublisher.renderHtml(page);
-        return htmlContent;
+
+        return minify(htmlContent, {
+            caseSensitive: true,
+            collapseBooleanAttributes: true,
+            collapseInlineTagWhitespace: false,
+            collapseWhitespace: true,
+            html5: true,
+            minifyCSS: true,
+            preserveLineBreaks: false,
+            removeComments: true,
+            removeEmptyAttributes: true,
+            removeOptionalTags: false,
+            removeRedundantAttributes: false,
+            removeScriptTypeAttributes: false,
+            removeStyleLinkTypeAttributes: false,
+            removeTagWhitespace: false,
+            removeAttributeQuotes: false
+        });
     }
 
     private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder, locale: any): Promise<void> {
+        const pageContent = await this.pageService.getPageContent(page.key);
+        const styleManager = new StyleManager();
+
         const htmlPage: HtmlPage = {
             title: [page.title, settings.site.title].join(" - "),
             description: page.description || settings.site.description,
             keywords: page.keywords || settings.site.keywords,
             permalink: page.permalink,
+            url: `https://${settings.site.hostname}${page.permalink}`,
+            siteHostName: settings.site.hostname,
+            content: pageContent,
+            template: template,
+            styleReferences: [
+                `/styles/styles.css`,
+                page.permalink === "/"
+                    ? "/styles.css"
+                    : `${page.permalink}/styles.css`
+            ],
             author: settings.site.author,
+            socialShareData: page.socialShareData,
             openGraph: {
                 type: page.permalink === "/" ? "website" : "article",
-                title: page.title,
+                title: page.title || settings.site.title,
                 description: page.description || settings.site.description,
-                url: page.permalink,
                 siteName: settings.site.title
-                // image: { ... }
+            },
+            bindingContext: {
+                styleManager: styleManager,
+                navigationPath: page.permalink,
+                template: {
+                    page: {
+                        value: pageContent,
+                    }
+                }
             }
         };
+
+        if (page.jsonLd) {
+            let structuredData: any;
+            try {
+                structuredData = JSON.parse(page.jsonLd);
+                htmlPage.linkedData = structuredData;
+            }
+            catch (error) {
+                console.log("Unable to parse page linked data: ", error);
+            }
+        }
 
         if (settings.site.faviconSourceKey) {
             try {
@@ -58,25 +114,21 @@ export class PagePublisher implements IPublisher {
             }
         }
 
-        // settings.site.faviconSourceKey
         const htmlContent = await this.renderPage(htmlPage);
+
+        // Building local styles
+        const styleSheets = styleManager.getAllStyleSheets();
+        this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
 
         indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
 
         let permalink = page.permalink;
 
-        const regex = /\/[\w]+\.html$/gm;
-        const isHtmlFile = regex.test(permalink);
-
-        if (!isHtmlFile) {
-            /* if filename has no *.html extension we publish it to a dedicated folder with index.html */
-
-            if (!permalink.endsWith("/")) {
-                permalink += "/";
-            }
-
-            permalink = `${permalink}index.html`;
+        if (!permalink.endsWith("/")) {
+            permalink += "/";
         }
+
+        permalink = `${permalink}index.html`;
 
         const localePrefix = locale ? `/${locale}` : "";
         const uploadPath = `${localePrefix}${permalink}`;
@@ -90,13 +142,19 @@ export class PagePublisher implements IPublisher {
         // const localizationEnabled = locales.length > 1;
 
         const locale = locales[0];
+        const styleManager = new StyleManager();
+        const styleSheet = await this.styleCompiler.getStyleSheet();
+        styleManager.setStyleSheet(styleSheet);
 
+        // Building global styles
+        this.localStyleBuilder.buildLocalStyle("styles", [styleSheet]);
 
-        const pages = await this.pageService.search("");
-        const results = [];
-        const settings = await this.siteService.getSiteSettings();
-        const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
-        const searchIndexBuilder = new SearchIndexBuilder();
+        try {
+            const pages = await this.pageService.search("");
+            const results = [];
+            const settings = await this.siteService.getSiteSettings();
+            const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+            const searchIndexBuilder = new SearchIndexBuilder();
 
         for (const page of pages) {
             results.push(this.renderAndUpload(settings, page, searchIndexBuilder, locale));

@@ -36,7 +36,7 @@ export class PictureViewModelBinder implements ViewModelBinder<PictureModel, Pic
         viewModel.height(model.height);
 
         if (model.styles) {
-            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles));
+            viewModel.styles(await this.styleCompiler.getStyleModelAsync(model.styles, bindingContext?.styleManager));
         }
 
         const binding: IWidgetBinding<PictureModel> = {
@@ -44,7 +44,8 @@ export class PictureViewModelBinder implements ViewModelBinder<PictureModel, Pic
             displayName: "Picture",
             readonly: bindingContext ? bindingContext.readonly : false,
             model: model,
-            editor: "paperbits-picture-editor",
+            draggable: true,
+            editor: "picture-editor",
             applyChanges: async (changes) => {
                 await this.modelToViewModel(model, viewModel, bindingContext);
                 this.eventManager.dispatchEvent("onContentUpdate");
