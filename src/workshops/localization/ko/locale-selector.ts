@@ -30,10 +30,9 @@ export class LocaleSelector {
     }
 
     public selectLocale(locale: LocaleModel): void {
-        this.selectedLocale(locale);
-        this.eventManager.dispatchEvent("onLocaleChange", locale);
-
         this.localeService.setCurrentLocale(locale.code);
+        this.eventManager.dispatchEvent("onLocaleChange", locale);
+        this.selectedLocale(locale);
 
         // TODO: Locale is route based, so we need to set prefix like en-us
     }

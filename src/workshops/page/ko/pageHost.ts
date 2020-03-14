@@ -27,11 +27,11 @@ export class PageHost {
         private readonly styleCompiler: StyleCompiler
     ) {
         this.contentViewModel = ko.observable();
-        this.pagePostKey = ko.observable();
+        this.pageKey = ko.observable();
     }
 
     @Param()
-    public pagePostKey: ko.Observable<string>;
+    public pageKey: ko.Observable<string>;
 
     @OnMounted()
     public async initialize(): Promise<void> {
@@ -39,6 +39,7 @@ export class PageHost {
 
         this.router.addRouteChangeListener(this.onRouteChange);
         this.eventManager.addEventListener("onDataPush", () => this.onDataPush());
+        this.eventManager.addEventListener("onLocaleChange", () => this.onLocaleUpdate());
     }
 
     /**
@@ -71,7 +72,7 @@ export class PageHost {
 
         const pageContentContract = await this.pageService.getPageContent(pageContract.key);
 
-        this.pagePostKey(pageContract.key);
+        this.pageKey(pageContract.key);
 
         const styleManager = new StyleManager(this.eventManager);
         const styleSheet = await this.styleCompiler.getStyleSheet();

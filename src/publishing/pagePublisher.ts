@@ -156,33 +156,32 @@ export class PagePublisher implements IPublisher {
             const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
             const searchIndexBuilder = new SearchIndexBuilder();
 
-        for (const page of pages) {
-            results.push(this.renderAndUpload(settings, page, searchIndexBuilder, locale));
-            sitemapBuilder.appendPermalink(page.permalink);
+            for (const page of pages) {
+                results.push(this.renderAndUpload(settings, page, searchIndexBuilder, locale));
+                sitemapBuilder.appendPermalink(page.permalink);
+            }
+
+            // for (const locale of locales) {
+            //     try {
+            //         const pages = await this.pageService.search("", locale.code);
+            //         const results = [];
+            //         const settings = await this.siteService.getSiteSettings();
+            //         const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+
+            //         for (const page of pages) {
+            //             results.push(this.renderAndUpload(settings, page, locale.code));
+            //             sitemapBuilder.appendPermalink(page.permalink); // TODO: Prefix by hostname and locale.
+            //         }
+
+            //         await Promise.all(results);
+
+            //         const sitemapXml = sitemapBuilder.buildSitemap();
+            //         const contentBytes = Utils.stringToUnit8Array(sitemapXml);
+
+            //         await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
         }
-
-        // for (const locale of locales) {
-        //     try {
-        //         const pages = await this.pageService.search("", locale.code);
-        //         const results = [];
-        //         const settings = await this.siteService.getSiteSettings();
-        //         const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
-
-        //         for (const page of pages) {
-        //             results.push(this.renderAndUpload(settings, page, locale.code));
-        //             sitemapBuilder.appendPermalink(page.permalink); // TODO: Prefix by hostname and locale.
-        //         }
-
-        //         await Promise.all(results);
-
-        //         const sitemapXml = sitemapBuilder.buildSitemap();
-        //         const contentBytes = Utils.stringToUnit8Array(sitemapXml);
-
-        //         await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
-        //     }
-        //     catch (error) {
-        //         this.logger.traceError(error, "Page publisher");
-        //     }
-        // }
+        catch (error) {
+            this.logger.traceError(error, "Page publisher");
+        }
     }
 }
