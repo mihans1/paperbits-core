@@ -3,6 +3,7 @@ import template from "./locale-selector.html";
 import { Component, OnMounted } from "@paperbits/common/ko/decorators";
 import { EventManager } from "@paperbits/common/events";
 import { LocaleModel, ILocaleService } from "@paperbits/common/localization";
+import { ViewManager } from "@paperbits/common/ui";
 
 @Component({
     selector: "locale-selector",
@@ -15,6 +16,7 @@ export class LocaleSelector {
 
     constructor(
         private readonly eventManager: EventManager,
+        private readonly viewManager: ViewManager,
         private readonly localeService: ILocaleService
     ) {
         this.selectedLocale = ko.observable();
@@ -24,16 +26,23 @@ export class LocaleSelector {
     @OnMounted()
     public async initialize(): Promise<void> {
         const locales = await this.localeService.getLocales();
-        const currentLocale = await this.selectedLocale();
+        const currentLocaleCode = await this.localeService.getCurrentLocale();
+
         this.locales(locales);
-        this.selectedLocale(currentLocale);
+        this.selectedLocale(locales.find(x => x.code === currentLocaleCode));
     }
 
     public selectLocale(locale: LocaleModel): void {
+        this.viewManager.clearJourney();
+        
         this.localeService.setCurrentLocale(locale.code);
         this.eventManager.dispatchEvent("onLocaleChange", locale);
         this.selectedLocale(locale);
 
         // TODO: Locale is route based, so we need to set prefix like en-us
+    }
+
+    public async addLocale(): Promise<void> {
+        // 
     }
 }

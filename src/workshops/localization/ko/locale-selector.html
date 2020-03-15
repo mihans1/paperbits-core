@@ -1,13 +1,12 @@
 <div class="toolbox">
-    <ul class="list">
-        <!-- ko foreach: { data: locales, as: 'locale' } -->
-        <li class="list-item" data-bind="css: { selected: locale === $component.selectedLocale() }">
-            <a href="#" class="list-item-label" data-bind="click: $component.selectLocale, text: locale.displayName"></a>
-        </li>
-        <!--/ko -->
-    </ul>
+    <div class="list-checkboxes" data-bind="foreach: { data: locales, as: 'locale'  }">
+        <a href="#" role="listitem" class="list-item"
+            data-bind="text: locale.displayName, click: $component.selectLocale, css: { 'list-item-checked': locale === $component.selectedLocale() }">
+        </a>
+    </div>
     <div class="flex-item btn-group">
-        <button class="btn" data-bind="balloon: { component: { name: 'locale-editor', params: { locale: $component.selectedColorKey, onSelect: $component.onLocaleAdd } } }">
+        <button class="btn"
+            data-bind="balloon: { component: { name: 'locale-editor', params: { locale: $component.selectedColorKey, onSelect: $component.addLocale } } }">
             <i class="paperbits-icon paperbits-simple-add"></i>
             Add locale
         </button>
