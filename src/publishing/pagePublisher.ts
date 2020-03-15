@@ -52,7 +52,9 @@ export class PagePublisher implements IPublisher {
         });
     }
 
-    private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder, locale: any): Promise<void> {
+    private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder, locale?: string): Promise<void> {
+        const localePrefix = locale ? `/${locale}` : "";
+        const pagePermalink = `${localePrefix}${page.permalink}`;
         const pageContent = await this.pageService.getPageContent(page.key);
         const styleManager = new StyleManager();
 
@@ -60,8 +62,8 @@ export class PagePublisher implements IPublisher {
             title: [page.title, settings.site.title].join(" - "),
             description: page.description || settings.site.description,
             keywords: page.keywords || settings.site.keywords,
-            permalink: page.permalink,
-            url: `https://${settings.site.hostname}${page.permalink}`,
+            permalink: pagePermalink,
+            url: `https://${settings.site.hostname}${pagePermalink}`,
             siteHostName: settings.site.hostname,
             content: pageContent,
             template: template,
@@ -69,7 +71,7 @@ export class PagePublisher implements IPublisher {
                 `/styles/styles.css`,
                 page.permalink === "/"
                     ? "/styles.css"
-                    : `${page.permalink}/styles.css`
+                    : `${pagePermalink}/styles.css`
             ],
             author: settings.site.author,
             socialShareData: page.socialShareData,
@@ -81,7 +83,7 @@ export class PagePublisher implements IPublisher {
             },
             bindingContext: {
                 styleManager: styleManager,
-                navigationPath: page.permalink,
+                navigationPath: pagePermalink,
                 template: {
                     page: {
                         value: pageContent,
@@ -92,6 +94,7 @@ export class PagePublisher implements IPublisher {
 
         if (page.jsonLd) {
             let structuredData: any;
+
             try {
                 structuredData = JSON.parse(page.jsonLd);
                 htmlPage.linkedData = structuredData;
@@ -118,11 +121,11 @@ export class PagePublisher implements IPublisher {
 
         // Building local styles
         const styleSheets = styleManager.getAllStyleSheets();
-        this.localStyleBuilder.buildLocalStyle(page.permalink, styleSheets);
+        this.localStyleBuilder.buildLocalStyle(pagePermalink, styleSheets);
 
-        indexer.appendPage(htmlPage.permalink, htmlPage.title, htmlPage.description, htmlContent);
+        indexer.appendPage(pagePermalink, htmlPage.title, htmlPage.description, htmlContent);
 
-        let permalink = page.permalink;
+        let permalink = pagePermalink;
 
         if (!permalink.endsWith("/")) {
             permalink += "/";
@@ -130,8 +133,7 @@ export class PagePublisher implements IPublisher {
 
         permalink = `${permalink}index.html`;
 
-        const localePrefix = locale ? `/${locale}` : "";
-        const uploadPath = `${localePrefix}${permalink}`;
+        const uploadPath = permalink;
         const contentBytes = Utils.stringToUnit8Array(htmlContent);
 
         await this.outputBlobStorage.uploadBlob(uploadPath, contentBytes, "text/html");
@@ -139,9 +141,9 @@ export class PagePublisher implements IPublisher {
 
     public async publish(): Promise<void> {
         const locales = await this.localeService.getLocales();
-        // const localizationEnabled = locales.length > 1;
-
-        const locale = locales[0];
+        const defaultLocale  = await this.localeService.getDefaultLocale();
+        const localizationEnabled = locales.length > 0;
+       
         const styleManager = new StyleManager();
         const styleSheet = await this.styleCompiler.getStyleSheet();
         styleManager.setStyleSheet(styleSheet);
@@ -150,35 +152,39 @@ export class PagePublisher implements IPublisher {
         this.localStyleBuilder.buildLocalStyle("styles", [styleSheet]);
 
         try {
-            const pages = await this.pageService.search("");
             const results = [];
             const settings = await this.siteService.getSiteSettings();
             const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
             const searchIndexBuilder = new SearchIndexBuilder();
 
-            for (const page of pages) {
-                results.push(this.renderAndUpload(settings, page, searchIndexBuilder, locale));
-                sitemapBuilder.appendPermalink(page.permalink);
+            if (localizationEnabled) {
+                for (const locale of locales) {
+                    console.log(JSON.stringify(locale));
+
+                    const pages = await this.pageService.search("", locale.code);
+
+                    for (const page of pages) {
+                        results.push(this.renderAndUpload(settings, page, searchIndexBuilder, locale.code));
+                        sitemapBuilder.appendPermalink(`${locale.code}/${page.permalink}`); // TODO: Prefix by hostname and locale.
+                    }
+                }
+            }
+            else {
+                const pages = await this.pageService.search("");
+
+                for (const page of pages) {
+                    results.push(this.renderAndUpload(settings, page, searchIndexBuilder));
+                    sitemapBuilder.appendPermalink(page.permalink);
+                }
             }
 
-            // for (const locale of locales) {
-            //     try {
-            //         const pages = await this.pageService.search("", locale.code);
-            //         const results = [];
-            //         const settings = await this.siteService.getSiteSettings();
-            //         const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+            await Promise.all(results);
 
-            //         for (const page of pages) {
-            //             results.push(this.renderAndUpload(settings, page, locale.code));
-            //             sitemapBuilder.appendPermalink(page.permalink); // TODO: Prefix by hostname and locale.
-            //         }
+            const sitemapXml = sitemapBuilder.buildSitemap();
+            const contentBytes = Utils.stringToUnit8Array(sitemapXml);
 
-            //         await Promise.all(results);
+            await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
 
-            //         const sitemapXml = sitemapBuilder.buildSitemap();
-            //         const contentBytes = Utils.stringToUnit8Array(sitemapXml);
-
-            //         await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
         }
         catch (error) {
             this.logger.traceError(error, "Page publisher");
