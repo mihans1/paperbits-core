@@ -64,8 +64,8 @@ export const builtInLocales = {
         }
     },
     de: {
-        nameNative: "Deutsch ",
-        nameEnglish: "German ",
+        nameNative: "Deutsch",
+        nameEnglish: "German",
         locales: {
             at: {
                 nameNative: "Österreich",
@@ -92,8 +92,8 @@ export const builtInLocales = {
         }
     },
     en: {
-        nameNative: "English ",
-        nameEnglish: "English ",
+        nameNative: "English",
+        nameEnglish: "English",
         locales: {
             gb: {
                 nameNative: "UK",
@@ -106,8 +106,8 @@ export const builtInLocales = {
         }
     },
     es: {
-        nameNative: "Español ",
-        nameEnglish: "Spanish ",
+        nameNative: "Español",
+        nameEnglish: "Spanish",
         locales: {
             cl: {
                 nameNative: "Chile",
@@ -158,8 +158,8 @@ export const builtInLocales = {
         }
     },
     fr: {
-        nameNative: "Français ",
-        nameEnglish: "French ",
+        nameNative: "Français",
+        nameEnglish: "French",
         locales: {
             ca: {
                 nameNative: "Canada",
@@ -297,7 +297,7 @@ export const builtInLocales = {
     },
     nb: {
         nameNative: "Norsk bokmål",
-        nameEnglish: "Norwegian ",
+        nameEnglish: "Norwegian",
         locales: {
             no: {
                 nameEnglish: "Bokmål"
@@ -316,7 +316,7 @@ export const builtInLocales = {
     },
     nn: {
         nameNative: "Norsk nynorsk",
-        nameEnglish: "Norwegian ",
+        nameEnglish: "Norwegian",
         locales: {
             no: {
                 nameEnglish: "Nynorsk"
@@ -334,8 +334,8 @@ export const builtInLocales = {
         }
     },
     pt: {
-        nameNative: "Português ",
-        nameEnglish: "Portuguese ",
+        nameNative: "Português",
+        nameEnglish: "Portuguese",
         locales: {
             br: {
                 nameNative: "Brasil",
@@ -448,8 +448,8 @@ export const builtInLocales = {
         }
     },
     zh: {
-        nameNative: "中文 ",
-        nameEnglish: "Chinese ",
+        nameNative: "中文",
+        nameEnglish: "Chinese",
         locales: {
             cn: {
                 nameNative: "中国大陆",

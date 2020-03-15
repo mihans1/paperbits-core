@@ -1,7 +1,7 @@
 import * as ko from "knockout";
 import template from "./localeEditor.html";
 import { Component, OnMounted, Param, Event } from "@paperbits/common/ko/decorators";
-import { LocaleModel } from "@paperbits/common/localization";
+import { LocaleModel, LocaleService } from "@paperbits/common/localization";
 import { builtInLocales } from "../locales";
 
 @Component({
@@ -10,15 +10,12 @@ import { builtInLocales } from "../locales";
     injectable: "localeEditor"
 })
 export class LocaleEditor {
-    public readonly code: ko.Observable<string>;
-    public readonly displayName: ko.Observable<string>;
-
     public readonly languages: ko.Observable<any>;
     public readonly selectedLanguage: ko.Observable<any>;
     public readonly locales: ko.Observable<any>;
     public readonly selectedLocale: ko.Observable<any>;
 
-    constructor() {
+    constructor(private readonly localeService: LocaleService) {
         this.selectedLanguage = ko.observable();
         this.selectedLocale = ko.observable();
 
@@ -30,9 +27,6 @@ export class LocaleEditor {
                 displayName: builtInLocales[x].nameNative
             };
         }));
-
-        this.code = ko.observable<string>();
-        this.displayName = ko.observable<string>();
     }
 
     @Param()
@@ -43,11 +37,11 @@ export class LocaleEditor {
 
     @OnMounted()
     public async initialize(): Promise<void> {
-        this.code.subscribe(this.applyChanges);
-
         this.selectedLanguage.subscribe(language => {
+            this.locales(null);
+            this.selectedLocale(null);
+
             if (!language.language.locales) {
-                this.locales(null);
                 return;
             }
 
@@ -58,13 +52,22 @@ export class LocaleEditor {
                 };
             }));
         });
-
-        this.displayName.subscribe(this.applyChanges);
     }
 
-    public applyChanges(): void {
-        this.locale.code = this.code();
-        this.locale.displayName = this.displayName();
-        this.onChange(this.locale);
+    public addLocale(): void {
+        const language = this.selectedLanguage();
+        const locale = this.selectedLocale();
+
+        let code = language.code;
+        let displayName = language.displayName;
+
+        if (locale) {
+            code += "-" + locale.code;
+            displayName += ` (${locale.displayName})`;
+        }
+
+        debugger;
+
+        // this.localeService.createLocale(code, displayName);
     }
 }

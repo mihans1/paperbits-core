@@ -4,8 +4,6 @@
             Language
             <button class="btn btn-info" type="button" data-bind="tooltipToggle: 'Locale code, e.g. en-us'"></button>
         </label>
-        <input type="text" class="form-control" placeholder="e.g. en-us" data-bind="textInput: code" maxlength="10" />
-
         <select id="textTransform" class="form-control"
                     data-bind="options: languages, value: selectedLanguage, optionsText: 'displayName'"></select>
     </div>
@@ -21,3 +19,10 @@
     </div>
     <!-- /ko -->
 </fieldset>
+
+<div class="flex-item btn-group">
+    <button class="btn" data-bind="click: addLocale">
+        <i class="paperbits-icon paperbits-simple-add"></i>
+        Add locale
+    </button>
+</div>
