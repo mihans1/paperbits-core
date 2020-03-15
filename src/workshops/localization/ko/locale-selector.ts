@@ -3,7 +3,7 @@ import template from "./locale-selector.html";
 import { Component, OnMounted } from "@paperbits/common/ko/decorators";
 import { EventManager } from "@paperbits/common/events";
 import { LocaleModel, ILocaleService } from "@paperbits/common/localization";
-import { ViewManager } from "@paperbits/common/ui";
+import { ViewManager, View } from "@paperbits/common/ui";
 
 @Component({
     selector: "locale-selector",
@@ -34,15 +34,25 @@ export class LocaleSelector {
 
     public selectLocale(locale: LocaleModel): void {
         this.viewManager.clearJourney();
-        
         this.localeService.setCurrentLocale(locale.code);
         this.eventManager.dispatchEvent("onLocaleChange", locale);
         this.selectedLocale(locale);
-
-        // TODO: Locale is route based, so we need to set prefix like en-us
     }
 
     public async addLocale(): Promise<void> {
-        // 
+        const view: View = {
+            heading: "Add locale",
+            component: {
+                name: "locale-editor",
+                params: {
+                    onDeleteCallback: () => {
+                        // this.searchPages();
+                    }
+                }
+            },
+            resize: "vertically horizontally"
+        };
+
+        this.viewManager.openViewAsPopup(view);
     }
 }

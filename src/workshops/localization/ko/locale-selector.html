@@ -6,7 +6,7 @@
     </div>
     <div class="flex-item btn-group">
         <button class="btn"
-            data-bind="balloon: { component: { name: 'locale-editor', params: { locale: $component.selectedColorKey, onSelect: $component.addLocale } } }">
+            data-bind="click: $component.addLocale">
             <i class="paperbits-icon paperbits-simple-add"></i>
             Add locale
         </button>
