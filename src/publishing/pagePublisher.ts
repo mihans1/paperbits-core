@@ -69,9 +69,7 @@ export class PagePublisher implements IPublisher {
             template: template,
             styleReferences: [
                 `/styles/styles.css`,
-                page.permalink === "/"
-                    ? "/styles.css"
-                    : `${pagePermalink}/styles.css`
+                `${pagePermalink}/styles.css`
             ],
             author: settings.site.author,
             socialShareData: page.socialShareData,
@@ -144,12 +142,10 @@ export class PagePublisher implements IPublisher {
         const defaultLocale  = await this.localeService.getDefaultLocale();
         const localizationEnabled = locales.length > 0;
        
-        const styleManager = new StyleManager();
-        const styleSheet = await this.styleCompiler.getStyleSheet();
-        styleManager.setStyleSheet(styleSheet);
+        const globalStyleSheet = await this.styleCompiler.getStyleSheet();
 
         // Building global styles
-        this.localStyleBuilder.buildLocalStyle("styles", [styleSheet]);
+        this.localStyleBuilder.buildLocalStyle("/styles", [globalStyleSheet]);
 
         try {
             const results = [];
