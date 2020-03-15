@@ -3,6 +3,7 @@ import template from "./localeEditor.html";
 import { Component, OnMounted, Param, Event } from "@paperbits/common/ko/decorators";
 import { LocaleModel, LocaleService } from "@paperbits/common/localization";
 import { builtInLocales } from "../locales";
+import { EventManager } from "@paperbits/common/events";
 
 @Component({
     selector: "locale-editor",
@@ -15,16 +16,19 @@ export class LocaleEditor {
     public readonly locales: ko.Observable<any>;
     public readonly selectedLocale: ko.Observable<any>;
 
-    constructor(private readonly localeService: LocaleService) {
+    constructor(
+        private readonly localeService: LocaleService,
+        private readonly eventManager: EventManager,
+    ) {
         this.selectedLanguage = ko.observable();
         this.selectedLocale = ko.observable();
 
         this.locales = ko.observableArray();
-        this.languages = ko.observable<any>(Object.keys(builtInLocales).map(x => {
+        this.languages = ko.observable<any>(Object.keys(builtInLocales).map(code => {
             return {
-                code: x,
-                language: builtInLocales[x],
-                displayName: builtInLocales[x].nameNative
+                code: code,
+                locales: builtInLocales[code].locales,
+                displayName: builtInLocales[code].nameNative
             };
         }));
     }
@@ -41,20 +45,20 @@ export class LocaleEditor {
             this.locales(null);
             this.selectedLocale(null);
 
-            if (!language.language.locales) {
+            if (!language.locales) {
                 return;
             }
 
-            this.locales(Object.keys(language.language.locales).map(x => {
+            this.locales(Object.keys(language.locales).map(x => {
                 return {
                     code: x,
-                    displayName: language.language.locales[x].nameNative
+                    displayName: language.locales[x].nameNative
                 };
             }));
         });
     }
 
-    public addLocale(): void {
+    public async addLocale(): Promise<void> {
         const language = this.selectedLanguage();
         const locale = this.selectedLocale();
 
@@ -66,8 +70,8 @@ export class LocaleEditor {
             displayName += ` (${locale.displayName})`;
         }
 
-        debugger;
+        await this.localeService.createLocale(code, displayName);
 
-        // this.localeService.createLocale(code, displayName);
+        this.eventManager.dispatchEvent("onLocalesChange");
     }
 }

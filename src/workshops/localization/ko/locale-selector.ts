@@ -25,6 +25,11 @@ export class LocaleSelector {
 
     @OnMounted()
     public async initialize(): Promise<void> {
+        this.refreshLocales();
+        this.eventManager.addEventListener("onLocalesChange", this.refreshLocales);
+    }
+
+    private async refreshLocales(): Promise<void> {
         const locales = await this.localeService.getLocales();
         const currentLocaleCode = await this.localeService.getCurrentLocale();
 
