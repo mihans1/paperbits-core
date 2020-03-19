@@ -26,7 +26,7 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
         return model instanceof MenuModel;
     }
 
-    private async processNavigationItem(contract: NavigationItemContract, permalink: string, minHeading: number, maxHeading: number, level: number = 0): Promise<NavigationItemModel> {
+    private async processNavigationItem(bindingContext: Bag<any>, contract: NavigationItemContract, permalink: string, minHeading: number, maxHeading: number, level: number = 0): Promise<NavigationItemModel> {
         const navitemModel = new NavigationItemModel();
         navitemModel.label = contract.label;
 
@@ -34,7 +34,7 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
             const tasks = [];
 
             contract.navigationItems.forEach(child => {
-                tasks.push(this.processNavigationItem(child, permalink, minHeading, maxHeading, level + 1));
+                tasks.push(this.processNavigationItem(bindingContext, child, permalink, minHeading, maxHeading, level + 1));
             });
 
             const results = await Promise.all(tasks);
@@ -48,7 +48,10 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
             return navitemModel;
         }
 
-        const contentItem = await this.contentItemService.getContentItemByKey(contract.targetKey);
+        const contentItem = await this.contentItemService.getContentItemByKey(contract.targetKey, bindingContext?.locale);
+
+        console.log(contract.targetKey);
+        console.log(bindingContext?.locale);
 
         if (!contentItem) {
             return navitemModel;
@@ -104,7 +107,7 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
             const rootNavigationItem = await this.navigationService.getNavigationItem(contract.navigationItemKey);
 
             if (rootNavigationItem) {
-                const root = await this.processNavigationItem(rootNavigationItem, currentPageUrl, menuModel.minHeading, menuModel.maxHeading);
+                const root = await this.processNavigationItem(bindingContext, rootNavigationItem, currentPageUrl, menuModel.minHeading, menuModel.maxHeading);
                 menuModel.items = root.nodes;
                 menuModel.navigationItem = root;
                 menuModel.navigationItem.key = contract.navigationItemKey;

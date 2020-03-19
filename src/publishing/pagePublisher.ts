@@ -82,6 +82,7 @@ export class PagePublisher implements IPublisher {
             bindingContext: {
                 styleManager: styleManager,
                 navigationPath: pagePermalink,
+                locale: locale,
                 template: {
                     page: {
                         value: pageContent,
