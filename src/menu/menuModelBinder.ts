@@ -1,19 +1,18 @@
-import { Contract, Bag } from "@paperbits/common";
+import { Bag, Contract } from "@paperbits/common";
+import { IModelBinder } from "@paperbits/common/editing";
 import { INavigationService, NavigationItemContract, NavigationItemModel } from "@paperbits/common/navigation";
 import { IPageService } from "@paperbits/common/pages";
-import { IModelBinder } from "@paperbits/common/editing";
+import { IPermalinkResolver } from "@paperbits/common/permalinks";
 import { BuiltInRoles } from "@paperbits/common/user";
-import { IContentItemService } from "@paperbits/common/contentItems";
-import { MenuContract } from "./menuContract";
 import { AnchorUtils } from "../text/anchorUtils";
 import { BlockContract } from "../text/contracts";
+import { MenuContract } from "./menuContract";
 import { MenuModel } from "./menuModel";
-import { LocalStyles } from "@paperbits/common/styles";
 
 
 export class MenuModelBinder implements IModelBinder<MenuModel> {
     constructor(
-        private readonly contentItemService: IContentItemService,
+        private readonly permalinkResolver: IPermalinkResolver,
         private readonly navigationService: INavigationService,
         private readonly pageService: IPageService
     ) { }
@@ -26,7 +25,7 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
         return model instanceof MenuModel;
     }
 
-    private async processNavigationItem(bindingContext: Bag<any>, contract: NavigationItemContract, permalink: string, minHeading: number, maxHeading: number, level: number = 0): Promise<NavigationItemModel> {
+    private async processNavigationItem(locale: string, contract: NavigationItemContract, permalink: string, minHeading: number, maxHeading: number, level: number = 0): Promise<NavigationItemModel> {
         const navitemModel = new NavigationItemModel();
         navitemModel.label = contract.label;
 
@@ -34,7 +33,7 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
             const tasks = [];
 
             contract.navigationItems.forEach(child => {
-                tasks.push(this.processNavigationItem(bindingContext, child, permalink, minHeading, maxHeading, level + 1));
+                tasks.push(this.processNavigationItem(locale, child, permalink, minHeading, maxHeading, level + 1));
             });
 
             const results = await Promise.all(tasks);
@@ -48,30 +47,24 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
             return navitemModel;
         }
 
-        const contentItem = await this.contentItemService.getContentItemByKey(contract.targetKey, bindingContext?.locale);
+        const targetUrl = await this.permalinkResolver.getUrlByTargetKey(contract.targetKey, locale);
+        navitemModel.targetUrl = targetUrl;
 
-        if (!contentItem) {
-            return navitemModel;
-        }
-
-        navitemModel.targetUrl = contentItem.permalink;
-
-        if (contentItem.permalink === permalink) {
+        if (targetUrl === permalink) {
             navitemModel.isActive = true;
         }
 
         if (level > 0 && minHeading && maxHeading && navitemModel.targetUrl === permalink) {
-            const localNavItems = await this.processAnchorItems(permalink, minHeading, maxHeading);
+            const localNavItems = await this.processAnchorItems(permalink, locale, minHeading, maxHeading);
             navitemModel.nodes.push(...localNavItems);
         }
 
         return navitemModel;
     }
 
-    private async processAnchorItems(permalink: string, minHeading: number, maxHeading?: number): Promise<NavigationItemModel[]> {
-        const page = await this.pageService.getPageByPermalink(permalink);
-        const pageContent = await this.pageService.getPageContent(page.key);
-        const children = AnchorUtils.getHeadingNodes(pageContent, minHeading, maxHeading);
+    private async processAnchorItems(permalink: string, locale: string, minHeading: number, maxHeading?: number): Promise<NavigationItemModel[]> {
+        const content = await this.permalinkResolver.getContentByPermalink(permalink, locale);
+        const children = AnchorUtils.getHeadingNodes(content, minHeading, maxHeading);
 
         if (children.length === 0) {
             return [];
@@ -104,7 +97,7 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
             const rootNavigationItem = await this.navigationService.getNavigationItem(contract.navigationItemKey);
 
             if (rootNavigationItem) {
-                const root = await this.processNavigationItem(bindingContext, rootNavigationItem, currentPageUrl, menuModel.minHeading, menuModel.maxHeading);
+                const root = await this.processNavigationItem(bindingContext?.locale, rootNavigationItem, currentPageUrl, menuModel.minHeading, menuModel.maxHeading);
                 menuModel.items = root.nodes;
                 menuModel.navigationItem = root;
                 menuModel.navigationItem.key = contract.navigationItemKey;
@@ -112,7 +105,7 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
         }
 
         if (menuModel.items.length === 0 && menuModel.minHeading && menuModel.maxHeading) {
-            const localNavItems = await this.processAnchorItems(currentPageUrl, menuModel.minHeading, menuModel.maxHeading);
+            const localNavItems = await this.processAnchorItems(currentPageUrl, bindingContext?.locale, menuModel.minHeading, menuModel.maxHeading);
             menuModel.items.push(...localNavItems);
         }
 
