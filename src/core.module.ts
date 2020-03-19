@@ -27,8 +27,9 @@ import { DefaultEventManager, GlobalEventHandler } from "@paperbits/common/event
 import { LocalCache } from "@paperbits/common/caching";
 import { LayoutService } from "@paperbits/common/layouts/layoutService";
 import { ContentItemService } from "@paperbits/common/contentItems/contentItemService";
-import { PageService } from "@paperbits/common/pages";
-import { LocalizedPageService } from "@paperbits/common/pages";
+import { PageService, LocalizedPageService } from "@paperbits/common/pages";
+import { PagePermalinkResolver } from "@paperbits/common/pages/pagePermalinkResolver";
+import { UrlPermalinkResolver } from "@paperbits/common/urls/urlPermalinkResolver";
 import { BlogService } from "@paperbits/common/blogs";
 import { MediaService } from "@paperbits/common/media";
 import { BlockService } from "@paperbits/common/blocks";
@@ -55,6 +56,7 @@ export class CoreModule implements IInjectorModule {
         injector.bindCollectionLazily("routeGuards");
         injector.bindCollectionLazily("modelBinders");
         injector.bindCollectionLazily("viewModelBinders");
+        injector.bindCollectionLazily("permalinkResolvers");
         
         /*** Core ***/
         injector.bindSingleton("settingsProvider", SettingsProvider);
@@ -78,7 +80,9 @@ export class CoreModule implements IInjectorModule {
         injector.bindSingleton("urlService", UrlService);
         injector.bindSingleton("localeService", LocaleService);
         injector.bindSingleton("permalinkResolver", PermalinkResolver);
-        injector.bindSingleton("mediaPermalinkResolver", MediaPermalinkResolver);
+        injector.bindToCollection("permalinkResolvers", MediaPermalinkResolver, "mediaPermalinkResolver");
+        injector.bindToCollection("permalinkResolvers", PagePermalinkResolver, "pagePermalinkResolver");
+        injector.bindToCollection("permalinkResolvers", UrlPermalinkResolver, "pagePermalinkResolver");
 
         injector.bind("modelBinderSelector", ModelBinderSelector);
         injector.bind("viewModelBinderSelector", ViewModelBinderSelector);

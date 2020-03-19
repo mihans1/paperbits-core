@@ -50,9 +50,6 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
 
         const contentItem = await this.contentItemService.getContentItemByKey(contract.targetKey, bindingContext?.locale);
 
-        console.log(contract.targetKey);
-        console.log(bindingContext?.locale);
-
         if (!contentItem) {
             return navitemModel;
         }
