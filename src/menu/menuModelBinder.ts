@@ -1,7 +1,6 @@
 import { Bag, Contract } from "@paperbits/common";
 import { IModelBinder } from "@paperbits/common/editing";
 import { INavigationService, NavigationItemContract, NavigationItemModel } from "@paperbits/common/navigation";
-import { IPageService } from "@paperbits/common/pages";
 import { IPermalinkResolver } from "@paperbits/common/permalinks";
 import { BuiltInRoles } from "@paperbits/common/user";
 import { AnchorUtils } from "../text/anchorUtils";
@@ -13,8 +12,7 @@ import { MenuModel } from "./menuModel";
 export class MenuModelBinder implements IModelBinder<MenuModel> {
     constructor(
         private readonly permalinkResolver: IPermalinkResolver,
-        private readonly navigationService: INavigationService,
-        private readonly pageService: IPageService
+        private readonly navigationService: INavigationService
     ) { }
 
     public canHandleContract(contract: Contract): boolean {

@@ -2,7 +2,6 @@ import { BlockService } from "@paperbits/common/blocks";
 import { BlogService } from "@paperbits/common/blogs";
 import { LocalCache } from "@paperbits/common/caching";
 import { SettingsProvider } from "@paperbits/common/configuration";
-import { ContentItemService } from "@paperbits/common/contentItems/contentItemService";
 import { DefaultEventManager, GlobalEventHandler } from "@paperbits/common/events";
 import { XmlHttpRequestClient } from "@paperbits/common/http";
 import { IInjector, IInjectorModule } from "@paperbits/common/injection";
@@ -66,7 +65,6 @@ export class CoreModule implements IInjectorModule {
         injector.bindSingleton("localCache", LocalCache);
 
         /*** Services ***/
-        injector.bindSingleton("contentItemService", ContentItemService);
         injector.bindSingleton("widgetService", WidgetService);
         injector.bindSingleton("layoutService", LayoutService);
         // injector.bindSingleton("pageService", PageService);
