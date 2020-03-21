@@ -156,8 +156,6 @@ export class PagePublisher implements IPublisher {
 
             if (localizationEnabled) {
                 for (const locale of locales) {
-                    console.log(JSON.stringify(locale));
-
                     const pages = await this.pageService.search("", locale.code);
 
                     for (const page of pages) {
