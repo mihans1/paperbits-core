@@ -50,8 +50,8 @@ export class LocaleSelector {
             component: {
                 name: "locale-editor",
                 params: {
-                    onDeleteCallback: () => {
-                        // this.searchPages();
+                    onLocaleAdded: () => {
+                        this.viewManager.closeView();
                     }
                 }
             },

@@ -4,6 +4,7 @@ import { Component, OnMounted, Param, Event } from "@paperbits/common/ko/decorat
 import { LocaleModel, LocaleService } from "@paperbits/common/localization";
 import { builtInLocales } from "../locales";
 import { EventManager } from "@paperbits/common/events";
+import { ViewManager } from "@paperbits/common/ui";
 
 @Component({
     selector: "locale-editor",
@@ -19,6 +20,7 @@ export class LocaleEditor {
     constructor(
         private readonly localeService: LocaleService,
         private readonly eventManager: EventManager,
+        private readonly viewManager: ViewManager
     ) {
         this.selectedLanguage = ko.observable();
         this.selectedLocale = ko.observable();
@@ -37,7 +39,7 @@ export class LocaleEditor {
     public locale: LocaleModel;
 
     @Event()
-    public onChange: (model: LocaleModel) => void;
+    public onLocaleAdded: (model: LocaleModel) => void;
 
     @OnMounted()
     public async initialize(): Promise<void> {
@@ -73,5 +75,11 @@ export class LocaleEditor {
         await this.localeService.createLocale(code, displayName);
 
         this.eventManager.dispatchEvent("onLocalesChange");
+
+        if (this.onLocaleAdded) {
+            this.onLocaleAdded(locale);
+        }
+
+        this.viewManager.notifySuccess("Content localization", `Locale "${displayName}" was  added.`);
     }
 }
