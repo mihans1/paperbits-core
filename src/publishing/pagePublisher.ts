@@ -140,9 +140,9 @@ export class PagePublisher implements IPublisher {
 
     public async publish(): Promise<void> {
         const locales = await this.localeService.getLocales();
-        const defaultLocale  = await this.localeService.getDefaultLocale();
+        const defaultLocale = await this.localeService.getDefaultLocale();
         const localizationEnabled = locales.length > 0;
-       
+
         const globalStyleSheet = await this.styleCompiler.getStyleSheet();
 
         // Building global styles
@@ -156,11 +156,15 @@ export class PagePublisher implements IPublisher {
 
             if (localizationEnabled) {
                 for (const locale of locales) {
-                    const pages = await this.pageService.search("", locale.code);
+                    const localeCode = locale.code === defaultLocale
+                        ? null
+                        : locale.code;
+
+                    const pages = await this.pageService.search("", localeCode);
 
                     for (const page of pages) {
-                        results.push(this.renderAndUpload(settings, page, searchIndexBuilder, locale.code));
-                        sitemapBuilder.appendPermalink(`${locale.code}/${page.permalink}`); // TODO: Prefix by hostname and locale.
+                        results.push(this.renderAndUpload(settings, page, searchIndexBuilder, localeCode));
+                        sitemapBuilder.appendPermalink(`${localeCode || ""}${page.permalink}`);
                     }
                 }
             }
