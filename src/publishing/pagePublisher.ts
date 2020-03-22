@@ -31,53 +31,73 @@ export class PagePublisher implements IPublisher {
 
     public async renderPage(page: HtmlPage): Promise<string> {
         this.logger.traceEvent(`Publishing page ${page.title}...`);
-        const htmlContent = await this.htmlPagePublisher.renderHtml(page);
 
-        return minify(htmlContent, {
-            caseSensitive: true,
-            collapseBooleanAttributes: true,
-            collapseInlineTagWhitespace: false,
-            collapseWhitespace: true,
-            html5: true,
-            minifyCSS: true,
-            preserveLineBreaks: false,
-            removeComments: true,
-            removeEmptyAttributes: true,
-            removeOptionalTags: false,
-            removeRedundantAttributes: false,
-            removeScriptTypeAttributes: false,
-            removeStyleLinkTypeAttributes: false,
-            removeTagWhitespace: false,
-            removeAttributeQuotes: false
-        });
+        try {
+            const htmlContent = await this.htmlPagePublisher.renderHtml(page);
+
+            return minify(htmlContent, {
+                caseSensitive: true,
+                collapseBooleanAttributes: true,
+                collapseInlineTagWhitespace: false,
+                collapseWhitespace: true,
+                html5: true,
+                minifyCSS: true,
+                preserveLineBreaks: false,
+                removeComments: true,
+                removeEmptyAttributes: true,
+                removeOptionalTags: false,
+                removeRedundantAttributes: false,
+                removeScriptTypeAttributes: false,
+                removeStyleLinkTypeAttributes: false,
+                removeTagWhitespace: false,
+                removeAttributeQuotes: false
+            });
+        }
+        catch (error) {
+            throw new Error(`Unable to reneder page ${page.title}: ${error.message}`);
+        }
     }
 
     private async renderAndUpload(settings: any, page: PageContract, indexer: SearchIndexBuilder, locale?: string): Promise<void> {
+        const siteAuthor = settings?.site?.author;
+        const siteTitle = settings?.site?.title;
+        const siteDescription = settings?.site?.description;
+        const siteKeywords = settings?.site?.keywords;
+        const siteHostname = settings?.site?.hostname;
+        const faviconSourceKey = settings?.site?.faviconSourceKey;
+        
         const localePrefix = locale ? `/${locale}` : "";
+        
         const pagePermalink = `${localePrefix}${page.permalink}`;
-        const pageContent = await this.pageService.getPageContent(page.key);
+        const pageContent = await this.pageService.getPageContent(page.key, locale);
+        const pageUrl = siteHostname
+            ? `https://${settings?.site?.hostname}${pagePermalink}`
+            : pagePermalink;
+
         const styleManager = new StyleManager();
 
         const htmlPage: HtmlPage = {
-            title: [page.title, settings.site.title].join(" - "),
-            description: page.description || settings.site.description,
-            keywords: page.keywords || settings.site.keywords,
+            title: [page.title, siteTitle].join(" - "),
+            description: page.description || siteDescription,
+            keywords: page.keywords || siteKeywords,
             permalink: pagePermalink,
-            url: `https://${settings.site.hostname}${pagePermalink}`,
-            siteHostName: settings.site.hostname,
+            url: pageUrl,
+            siteHostName: siteHostname,
             content: pageContent,
             template: template,
             styleReferences: [
-                `/styles/styles.css`,
-                `${pagePermalink}/styles.css`
+                `/styles/styles.css`, // global style reference
+                pagePermalink === "/" // local style reference
+                    ? `/styles.css`   // home page style reference
+                    : `${pagePermalink}/styles.css`
             ],
-            author: settings.site.author,
+            author: siteAuthor,
             socialShareData: page.socialShareData,
             openGraph: {
                 type: page.permalink === "/" ? "website" : "article",
-                title: page.title || settings.site.title,
-                description: page.description || settings.site.description,
-                siteName: settings.site.title
+                title: page.title || siteTitle,
+                description: page.description || siteDescription,
+                siteName: siteTitle
             },
             bindingContext: {
                 styleManager: styleManager,
@@ -103,9 +123,9 @@ export class PagePublisher implements IPublisher {
             }
         }
 
-        if (settings.site.faviconSourceKey) {
+        if (faviconSourceKey) {
             try {
-                const media = await this.mediaService.getMediaByKey(settings.site.faviconSourceKey);
+                const media = await this.mediaService.getMediaByKey(faviconSourceKey);
 
                 if (media) {
                     htmlPage.faviconPermalink = media.permalink;
@@ -142,16 +162,15 @@ export class PagePublisher implements IPublisher {
         const locales = await this.localeService.getLocales();
         const defaultLocale = await this.localeService.getDefaultLocale();
         const localizationEnabled = locales.length > 0;
-
         const globalStyleSheet = await this.styleCompiler.getStyleSheet();
 
         // Building global styles
-        this.localStyleBuilder.buildLocalStyle("/styles", [globalStyleSheet]);
+        this.localStyleBuilder.buildGlobalStyle(globalStyleSheet);
 
         try {
             const results = [];
             const settings = await this.siteService.getSiteSettings();
-            const sitemapBuilder = new SitemapBuilder(settings.site.hostname);
+            const sitemapBuilder = new SitemapBuilder(settings?.site?.hostname);
             const searchIndexBuilder = new SearchIndexBuilder();
 
             if (localizationEnabled) {
