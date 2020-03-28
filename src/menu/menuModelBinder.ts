@@ -1,5 +1,6 @@
 import { Bag, Contract } from "@paperbits/common";
 import { IModelBinder } from "@paperbits/common/editing";
+import { ILocaleService } from "@paperbits/common/localization";
 import { INavigationService, NavigationItemContract, NavigationItemModel } from "@paperbits/common/navigation";
 import { IPermalinkResolver } from "@paperbits/common/permalinks";
 import { BuiltInRoles } from "@paperbits/common/user";
@@ -12,7 +13,8 @@ import { MenuModel } from "./menuModel";
 export class MenuModelBinder implements IModelBinder<MenuModel> {
     constructor(
         private readonly permalinkResolver: IPermalinkResolver,
-        private readonly navigationService: INavigationService
+        private readonly navigationService: INavigationService,
+        private readonly localeService: ILocaleService
     ) { }
 
     public canHandleContract(contract: Contract): boolean {
@@ -21,6 +23,30 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
 
     public canHandleModel(model: Object): boolean {
         return model instanceof MenuModel;
+    }
+
+    private async getLanguageNavigationMenu(bindingContext: Bag<any>): Promise<NavigationItemModel> {
+        const locales = await this.localeService.getLocales();
+        const defaultLocale = await this.localeService.getDefaultLocale();
+        const requestedLocaleCode = bindingContext?.locale || defaultLocale;
+        const requestedLocale = locales.find(x => x.code === requestedLocaleCode);
+        const languageNavItems = [];
+
+        for (const locale of locales) {
+            const targetUrl = await this.permalinkResolver.getUrlByTargetKey(bindingContext.contentItemKey, locale.code);
+
+            languageNavItems.push({
+                label: locale.displayName,
+                targetUrl: targetUrl
+            });
+        }
+
+        const currentLanguageNavItem: NavigationItemModel = {
+            label: requestedLocale?.displayName,
+            nodes: languageNavItems
+        };
+
+        return currentLanguageNavItem;
     }
 
     private async processNavigationItem(locale: string, contract: NavigationItemContract, permalink: string, minHeading: number, maxHeading: number, level: number = 0): Promise<NavigationItemModel> {
@@ -92,14 +118,22 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
         const currentPageUrl = bindingContext?.navigationPath;
 
         if (contract.navigationItemKey) {
-            const rootNavigationItem = await this.navigationService.getNavigationItem(contract.navigationItemKey);
+            let root: NavigationItemModel;
 
-            if (rootNavigationItem) {
-                const root = await this.processNavigationItem(bindingContext?.locale, rootNavigationItem, currentPageUrl, menuModel.minHeading, menuModel.maxHeading);
-                menuModel.items = root.nodes;
-                menuModel.navigationItem = root;
-                menuModel.navigationItem.key = contract.navigationItemKey;
+            if (contract.navigationItemKey === "@locales") {
+                root = await this.getLanguageNavigationMenu(bindingContext);
             }
+            else {
+                const rootNavigationItem = await this.navigationService.getNavigationItem(contract.navigationItemKey);
+
+                if (rootNavigationItem) {
+                    root = await this.processNavigationItem(bindingContext?.locale, rootNavigationItem, currentPageUrl, menuModel.minHeading, menuModel.maxHeading);
+                }
+            }
+
+            menuModel.items = root.nodes;
+            menuModel.navigationItem = root;
+            menuModel.navigationItem.key = contract.navigationItemKey;
         }
 
         if (menuModel.items.length === 0 && menuModel.minHeading && menuModel.maxHeading) {

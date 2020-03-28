@@ -100,6 +100,7 @@ export class PagePublisher implements IPublisher {
                 siteName: siteTitle
             },
             bindingContext: {
+                contentItemKey: page.key,
                 styleManager: styleManager,
                 navigationPath: pagePermalink,
                 locale: locale,
