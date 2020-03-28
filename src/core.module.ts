@@ -10,7 +10,7 @@ import { LocaleService } from "@paperbits/common/localization";
 import { MediaService } from "@paperbits/common/media";
 import { MediaPermalinkResolver } from "@paperbits/common/media/mediaPermalinkResolver";
 import { NavigationService } from "@paperbits/common/navigation";
-import { LocalizedPageService } from "@paperbits/common/pages";
+import { PageService } from "@paperbits/common/pages";
 import { PagePermalinkResolver } from "@paperbits/common/pages/pagePermalinkResolver";
 import { PermalinkResolver } from "@paperbits/common/permalinks";
 import { DefaultRouteGuard, DefaultRouter } from "@paperbits/common/routing";
@@ -67,8 +67,7 @@ export class CoreModule implements IInjectorModule {
         /*** Services ***/
         injector.bindSingleton("widgetService", WidgetService);
         injector.bindSingleton("layoutService", LayoutService);
-        // injector.bindSingleton("pageService", PageService);
-        injector.bindSingleton("pageService", LocalizedPageService);
+        injector.bindSingleton("pageService", PageService);
         injector.bindSingleton("blogService", BlogService);
         injector.bindSingleton("mediaService", MediaService);
         injector.bindSingleton("blockService", BlockService);

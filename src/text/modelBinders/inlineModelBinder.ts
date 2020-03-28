@@ -32,7 +32,8 @@ export class InlineModelBinder {
                         const targetKey = mark.attrs["targetKey"];
 
                         if (targetKey) {
-                            markModel.attrs = await this.permalinkResolver.getHyperlinkByTargetKey(targetKey, bindingContent?.locale);
+                            const hyperlink = await this.permalinkResolver.getHyperlinkByTargetKey(targetKey, bindingContent?.locale);
+                            markModel.attrs = hyperlink;
                             const anchor = mark?.attrs["anchor"];
 
                             if (anchor) {
