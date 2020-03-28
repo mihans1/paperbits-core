@@ -33,7 +33,9 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
         const languageNavItems = [];
 
         for (const locale of locales) {
-            const targetUrl = await this.permalinkResolver.getUrlByTargetKey(bindingContext.contentItemKey, locale.code);
+            const targetUrl = bindingContext?.contentItemKey
+                ? await this.permalinkResolver.getUrlByTargetKey(bindingContext.contentItemKey, locale.code)
+                : "/";
 
             languageNavItems.push({
                 label: locale.displayName,
