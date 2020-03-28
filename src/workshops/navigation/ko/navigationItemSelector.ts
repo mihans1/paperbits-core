@@ -49,7 +49,7 @@ export class NavigationItemSelector {
 
         const root: NavigationItemContract = {
             key: null,
-            label: "",
+            label: "Root",
             navigationItems: navigationItems
         };
 
