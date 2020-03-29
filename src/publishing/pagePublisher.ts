@@ -24,6 +24,7 @@ export class PagePublisher implements IPublisher {
         private readonly htmlPagePublisher: HtmlPagePublisher,
         private readonly styleCompiler: StyleCompiler,
         private readonly localeService: ILocaleService,
+        private readonly sitemapBuilder: SitemapBuilder,
         private readonly logger: Logger
     ) {
         this.localStyleBuilder = new LocalStyleBuilder(this.outputBlobStorage);
@@ -144,6 +145,7 @@ export class PagePublisher implements IPublisher {
         this.localStyleBuilder.buildLocalStyle(pagePermalink, styleSheets);
 
         indexer.appendPage(pagePermalink, htmlPage.title, htmlPage.description, htmlContent);
+        this.sitemapBuilder.appendPermalink(pagePermalink);
 
         let permalink = pagePermalink;
 
@@ -171,7 +173,6 @@ export class PagePublisher implements IPublisher {
         try {
             const results = [];
             const settings = await this.siteService.getSiteSettings();
-            const sitemapBuilder = new SitemapBuilder(settings?.site?.hostname);
             const searchIndexBuilder = new SearchIndexBuilder();
 
             if (localizationEnabled) {
@@ -184,7 +185,6 @@ export class PagePublisher implements IPublisher {
 
                     for (const page of pages) {
                         results.push(this.renderAndUpload(settings, page, searchIndexBuilder, localeCode));
-                        sitemapBuilder.appendPermalink(`${localeCode || ""}${page.permalink}`);
                     }
                 }
             }
@@ -193,17 +193,10 @@ export class PagePublisher implements IPublisher {
 
                 for (const page of pages) {
                     results.push(this.renderAndUpload(settings, page, searchIndexBuilder));
-                    sitemapBuilder.appendPermalink(page.permalink);
                 }
             }
 
             await Promise.all(results);
-
-            const sitemapXml = sitemapBuilder.buildSitemap();
-            const contentBytes = Utils.stringToUnit8Array(sitemapXml);
-
-            await this.outputBlobStorage.uploadBlob("sitemap.xml", contentBytes, "text/xml");
-
         }
         catch (error) {
             this.logger.traceError(error, "Page publisher");
