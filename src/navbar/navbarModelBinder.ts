@@ -22,7 +22,7 @@ export class NavbarModelBinder implements IModelBinder<NavbarModel> {
         }
 
         const navbarModel = new NavbarModel();
-        const navigationItemContract = await this.navigationService.getNavigationItem(contract.rootKey);
+        const navigationItemContract = await this.navigationService.getNavigationItemByKey(contract.rootKey);
 
         if (navigationItemContract) {
             const navbarItemModel = await this.navigationItemToNavbarItemModel(navigationItemContract, bindingContext?.locale);

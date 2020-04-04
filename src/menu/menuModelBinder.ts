@@ -126,7 +126,7 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
                 root = await this.getLanguageNavigationMenu(bindingContext);
             }
             else {
-                const rootNavigationItem = await this.navigationService.getNavigationItem(contract.navigationItemKey);
+                const rootNavigationItem = await this.navigationService.getNavigationItemByKey(contract.navigationItemKey);
 
                 if (rootNavigationItem) {
                     root = await this.processNavigationItem(bindingContext?.locale, rootNavigationItem, currentPageUrl, menuModel.minHeading, menuModel.maxHeading);

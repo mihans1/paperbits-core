@@ -49,7 +49,7 @@ export class TableOfContentsModelBinder implements IModelBinder<TableOfContentsM
         if (contract.navigationItemKey) {
             const currentPageUrl = bindingContext?.navigationPath;
 
-            const assignedNavigationItem = await this.navigationService.getNavigationItem(contract.navigationItemKey);
+            const assignedNavigationItem = await this.navigationService.getNavigationItemByKey(contract.navigationItemKey);
             tableOfContentsModel.title = tableOfContentsModel.title || assignedNavigationItem.label;
 
             if (assignedNavigationItem && assignedNavigationItem.navigationItems) { // has child nav items
