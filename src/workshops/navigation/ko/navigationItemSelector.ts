@@ -50,6 +50,7 @@ export class NavigationItemSelector {
         const root: NavigationItemContract = {
             key: null,
             label: "Root",
+            target: "_self",
             navigationItems: navigationItems
         };
 

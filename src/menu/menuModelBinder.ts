@@ -54,6 +54,7 @@ export class MenuModelBinder implements IModelBinder<MenuModel> {
     private async processNavigationItem(locale: string, contract: NavigationItemContract, permalink: string, minHeading: number, maxHeading: number, level: number = 0): Promise<NavigationItemModel> {
         const navitemModel = new NavigationItemModel();
         navitemModel.label = contract.label;
+        navitemModel.target = contract.target || "_self";
 
         if (contract.navigationItems) {
             const tasks = [];

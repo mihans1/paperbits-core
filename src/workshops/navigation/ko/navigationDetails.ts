@@ -34,7 +34,6 @@ export class NavigationDetailsWorkshop {
             const hyperlink = this.hyperlink();
 
             if (hyperlink) {
-                // return `${hyperlink.type}: ${hyperlink.title}`;
                 return `${hyperlink.title}`;
             }
 
@@ -61,6 +60,7 @@ export class NavigationDetailsWorkshop {
         const targetKey = hyperlink ? hyperlink.targetKey : null;
 
         this.navigationItem.targetKey(targetKey);
+        this.navigationItem.targetWindow(hyperlink.target);
     }
 
     public deleteNavigationItem(): void {

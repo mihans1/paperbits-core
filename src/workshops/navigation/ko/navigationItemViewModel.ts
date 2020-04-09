@@ -6,6 +6,7 @@ import { NavigationItemModel } from "@paperbits/common/navigation";
 export class NavigationItemViewModel {
     public key: string;
     public label: ko.Observable<string>;
+    public targetWindow: ko.Observable<string>;
     public targetKey: ko.Observable<string>;
     public targetUrl: ko.Observable<string>;
     public parent: NavigationItemViewModel;
@@ -25,6 +26,8 @@ export class NavigationItemViewModel {
         this.key = navitem.key;
         this.label = ko.observable<string>(navitem.label);
         this.label.subscribe(() => this.notify());
+        this.targetWindow = ko.observable<string>(navitem.target);
+        this.targetWindow.subscribe(() => this.notify());
         this.nodes = ko.observableArray<NavigationItemViewModel>([]);
         this.collapsed = ko.observable<boolean>(false);
         this.dragged = ko.observable<boolean>(false);

@@ -6,6 +6,7 @@ import * as ko from "knockout";
 export class MenuItemViewModel {
     public readonly label: ko.Observable<string>;
     public readonly url: ko.Observable<string>;
+    public readonly target: ko.Observable<string>;
     public readonly nodes: ko.ObservableArray<MenuItemViewModel>;
     public readonly isActive: ko.Observable<boolean>;
     public readonly expanded: ko.Observable<boolean>;
@@ -14,6 +15,7 @@ export class MenuItemViewModel {
     constructor() {
         this.label = ko.observable();
         this.url = ko.observable();
+        this.target = ko.observable();
         this.level = ko.observable();
         this.nodes = ko.observableArray([]);
         this.isActive = ko.observable(false);

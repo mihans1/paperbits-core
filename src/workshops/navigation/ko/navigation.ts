@@ -52,6 +52,7 @@ export class NavigationWorkshop {
         const root: NavigationItemContract = {
             key: null,
             label: "",
+            target: "_self",
             navigationItems: navigationItems
         };
 
