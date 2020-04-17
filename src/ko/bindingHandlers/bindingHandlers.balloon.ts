@@ -162,14 +162,14 @@ export class BalloonBindingHandler {
                             case "top":
                                 balloonElement.classList.add("balloon-top");
                                 balloonY = triggerRect.top - balloonHeight;
-                                balloonX = triggerRect.left + (triggerRect.width / 2) - balloonTipShift;
+                                balloonX = triggerRect.left + (triggerRect.width / 2) - (balloonWidth / 2);
 
                                 break;
 
                             case "bottom":
                                 balloonElement.classList.add("balloon-bottom");
                                 balloonY = triggerRect.top + triggerRect.height;
-                                balloonX = triggerRect.left + (triggerRect.width / 2) - balloonTipShift;
+                                balloonX = triggerRect.left + (triggerRect.width / 2) - (balloonWidth / 2);
                                 break;
                         }
                     }
@@ -189,6 +189,17 @@ export class BalloonBindingHandler {
                         }
                     }
 
+                    if (balloonY < egdeGap) {
+                        balloonY = egdeGap;
+                    }
+
+                    if (balloonY + balloonHeight > innerHeight - egdeGap) {
+                        balloonElement.style.bottom = `${egdeGap}px`;
+                    }
+
+                    if (balloonX < egdeGap) {
+                        balloonX = egdeGap;
+                    }
 
                     balloonElement.style.top = `${balloonY}px`;
                     balloonElement.style.left = `${balloonX}px`;
