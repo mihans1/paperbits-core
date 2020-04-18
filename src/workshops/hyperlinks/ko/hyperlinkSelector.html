@@ -14,9 +14,9 @@
         <!--ko foreach: { data: hyperlinkProviders, as: 'hyperlinkProvider' } -->
         <!--ko if: hyperlinkProvider.componentName !== 'blog-selector' -->
         <div class="tab"
-            data-bind="css: { 'tab-is-active': $parent.hyperlinkProvider() && hyperlinkProvider.componentName === $parent.hyperlinkProvider().componentName }, attr: { 'title': hyperlinkProvider.name, 'aria-selected': $parent.hyperlinkProvider() && hyperlinkProvider.componentName === $parent.hyperlinkProvider().componentName }">
+            data-bind="css: { 'tab-is-active': $component.hyperlinkProvider() && hyperlinkProvider.componentName === $component.hyperlinkProvider().componentName }, attr: { 'title': hyperlinkProvider.name, 'aria-selected': $parent.hyperlinkProvider() && hyperlinkProvider.componentName === $parent.hyperlinkProvider().componentName }">
             <a href="#" role="tab"
-                data-bind="balloon: { component: { name: hyperlinkProvider.componentName, params: { onSelect: $component.onHyperlinkSelected } } }">
+                data-bind="balloon: { component: { name: hyperlinkProvider.componentName, params: { onSelect: $component.onHyperlinkSelected } }, closeOn: $component.selection }">
                 <i data-bind="css: hyperlinkProvider.iconClass"></i>
             </a>
         </div>
