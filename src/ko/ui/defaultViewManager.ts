@@ -9,9 +9,10 @@ import { IComponent, View, ViewManager, ICommand, ViewManagerMode, IHighlightCon
 import { Router } from "@paperbits/common/routing";
 import { DragSession } from "@paperbits/common/ui/draggables";
 import { IWidgetBinding } from "@paperbits/common/editing";
-import { Component, OnMounted } from "@paperbits/common/ko/decorators";
+import { Component, OnMounted, OnDestroyed } from "@paperbits/common/ko/decorators";
 import { RoleModel, BuiltInRoles } from "@paperbits/common/user";
 import { DesignerUserService } from "./designerUserService";
+import { ViewStack } from "./viewStack";
 
 declare let uploadDialog: HTMLInputElement;
 
@@ -49,7 +50,8 @@ export class DefaultViewManager implements ViewManager {
         private readonly eventManager: EventManager,
         private readonly globalEventHandler: GlobalEventHandler,
         private readonly designerUserService: DesignerUserService,
-        private readonly router: Router
+        private readonly router: Router,
+        private readonly viewStack: ViewStack
     ) {
         this.designTime = ko.observable(false);
         this.previewable = ko.observable(true);
@@ -281,7 +283,12 @@ export class DefaultViewManager implements ViewManager {
             return;
         }
 
-        view.component.params.onClose = () => this.closeView();
+        // view.component.oncreate = (vm, el) => {
+        //     console.log(el);
+        //     view.element = el;
+        // };
+        view.component.params.onClose = () => this.closeView(); // TODO: Should be subscription rather than assignment
+
 
         this.clearContextualEditors();
         this.closeView();
@@ -289,6 +296,10 @@ export class DefaultViewManager implements ViewManager {
         this.mode = ViewManagerMode.configure;
 
         this.designTime(false); // Review: It's here for text editor
+
+      
+        // view.close = this.closeView;
+        // this.viewStack.pushView(view);
     }
 
     public getOpenView(): View {
@@ -302,8 +313,13 @@ export class DefaultViewManager implements ViewManager {
             this.setHost({ name: "page-host" });
         }
 
-        this.closeView();
-        this.clearJourney();
+        // const topView = this.viewStack.pop();
+
+        // if (topView) {
+        //     topView.close();
+        // }
+        // this.closeView();
+        // this.clearJourney();
     }
 
     public openWidgetEditor(binding: IWidgetBinding<any>): void {
@@ -447,5 +463,12 @@ export class DefaultViewManager implements ViewManager {
         this.showToolboxes();
         this.highlightedElement(null);
         this.selectedElement(null);
+    }
+
+
+
+    @OnDestroyed()
+    public dispose(): void {
+        // TODO
     }
 }

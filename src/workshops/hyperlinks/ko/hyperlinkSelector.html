@@ -1,27 +1,6 @@
 <div class="editor" data-bind="scrollable: {}">
     <h1>Hyperlink</h1>
     <hr />
-    <div class="hlink-container">
-        <span class="link-label" data-bind="attr: { title: getCurrentSelection() }">
-            <b data-bind="text: getCurrentSelection()"></b>
-        </span>
-    </div>
-
-    <!--ko if: hyperlink -->
-    <div class="form-group">
-        <label for="targetValue" class="form-label">
-            Open in
-            <button class="btn btn-info" type="button" title="Help"
-                data-bind="tooltipToggle: 'Specifies how to open the link.'"></button>
-        </label>
-        <label class="form-label">
-            <input type="radio" name="target" value="_self" data-bind="checked: target" /> Same window
-        </label>
-        <label class="form-label">
-            <input type="radio" name="target" value="_blank" data-bind="checked: target" /> New window
-        </label>
-    </div>
-    <!--/ko-->
 
     <div class="tabs" role="tablist">
         <div class="tab"
@@ -37,7 +16,7 @@
         <div class="tab"
             data-bind="css: { 'tab-is-active': $parent.hyperlinkProvider() && hyperlinkProvider.componentName === $parent.hyperlinkProvider().componentName }, attr: { 'title': hyperlinkProvider.name, 'aria-selected': $parent.hyperlinkProvider() && hyperlinkProvider.componentName === $parent.hyperlinkProvider().componentName }">
             <a href="#" role="tab"
-                data-bind="click: $parent.selectProvider, attr: { 'aria-label': hyperlinkProvider.name, 'aria-controls': hyperlinkProvider.componentName }">
+                data-bind="balloon: { component: { name: hyperlinkProvider.componentName, params: { onSelect: $component.onHyperlinkSelected } } }">
                 <i data-bind="css: hyperlinkProvider.iconClass"></i>
             </a>
         </div>
@@ -45,15 +24,31 @@
         <!--/ko-->
     </div>
 
-    <!-- ko with: hyperlinkProvider -->
-    <div role="tabpanel" class="flex flex-column">
-        <div class="flex flex-column flex-item-grow" role="tabpanel"
-            data-bind="resourcePicker: { resourcePicker: $component.hyperlinkProvider, onSelect: $component.onHyperlinkSelected, hyperlink: $component.hyperlink }, attr: { id: componentName, 'aria-label': name }">
+    <!--ko if: hyperlink -->
+    What does it point to?
+    <b data-bind="text: $component.selection"></b>
+
+    <div class="form-group">
+        <label for="targetValue" class="form-label">
+            How does it open?
+            <button class="btn btn-info" type="button" title="Help"
+                data-bind="tooltipToggle: 'Specifies how to open the link.'"></button>
+        </label>
+        <label class="form-label">
+            <input type="radio" name="target" value="_self" data-bind="checked: target" /> Same window
+        </label>
+        <label class="form-label">
+            <input type="radio" name="target" value="_blank" data-bind="checked: target" /> New window
+        </label>
+    </div>
+    <!--/ko-->
+
+    <!-- ko ifnot: hyperlink -->
+    <div class="flex flex-column">
+        <div class="flex flex-column flex-item-grow tab-panel" role="tabpanel">
+            <h3>No link</h3>
+            <p>Choose from the list of options to add a link to your element.</p>
         </div>
     </div>
-
-    <!--/ko-->
-    <!-- ko ifnot: hyperlinkProvider -->
-    <p>There is no resource selected for hyperlink.</p>
     <!--/ko-->
 </div>

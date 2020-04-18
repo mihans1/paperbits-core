@@ -13,6 +13,7 @@ const defaultTarget = "_self";
 export class HyperlinkSelector {
     public readonly hyperlinkProvider: ko.Observable<IHyperlinkProvider>;
     public readonly target: ko.Observable<string>;
+    public readonly selection: ko.Computed<string>;
 
     @Param()
     public hyperlink: ko.Observable<HyperlinkModel>;
@@ -20,12 +21,19 @@ export class HyperlinkSelector {
     @Event()
     public onChange: (hyperlink: HyperlinkModel) => void;
 
-    constructor(
-        private readonly hyperlinkProviders: IHyperlinkProvider[]
-    ) {
+    constructor(private readonly hyperlinkProviders: IHyperlinkProvider[]) {
         this.hyperlink = ko.observable<HyperlinkModel>();
         this.hyperlinkProvider = ko.observable<IHyperlinkProvider>(null);
         this.target = ko.observable<string>(defaultTarget);
+        this.selection = ko.computed(() => {
+            const hyperlink = ko.unwrap(this.hyperlink);
+
+            if (!hyperlink) {
+                return "No link";
+            }
+
+            return `${hyperlink.title}${hyperlink.anchorName ? " (" + hyperlink.anchorName + ")" : ""}`;
+        });
     }
 
     @OnMounted()
@@ -43,6 +51,8 @@ export class HyperlinkSelector {
     }
 
     public onHyperlinkSelected(hyperlink: HyperlinkModel): void {
+        console.log(hyperlink);
+
         this.hyperlink(hyperlink);
         hyperlink.target = this.target();
 
