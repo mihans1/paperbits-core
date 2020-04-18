@@ -227,7 +227,7 @@ export class BalloonBindingHandler {
                     view = {
                         close: close,
                         element: balloonElement,
-                        lastFocusedElement: toggleElement,
+                        returnFocusTo: toggleElement,
                         hitTest: (targetElement) => {
                             const element = closest(targetElement, x => x === balloonElement) || closest(targetElement, x => x === toggleElement);
                             return !!element;
