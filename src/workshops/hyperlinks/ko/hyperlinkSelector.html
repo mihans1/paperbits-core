@@ -16,7 +16,7 @@
         <div class="tab"
             data-bind="css: { 'tab-is-active': $component.hyperlinkProvider() && hyperlinkProvider.componentName === $component.hyperlinkProvider().componentName }, attr: { 'title': hyperlinkProvider.name, 'aria-selected': $parent.hyperlinkProvider() && hyperlinkProvider.componentName === $parent.hyperlinkProvider().componentName }">
             <a href="#" role="tab"
-                data-bind="balloon: { component: { name: hyperlinkProvider.componentName, params: { onSelect: $component.onHyperlinkSelected } }, closeOn: $component.selection }">
+                data-bind="balloon: { component: { name: hyperlinkProvider.componentName, params: { onHyperlinkSelect: $component.onHyperlinkSelected } } }">
                 <i data-bind="css: hyperlinkProvider.iconClass"></i>
             </a>
         </div>
@@ -25,14 +25,16 @@
     </div>
 
     <!--ko if: hyperlink -->
-    What does it point to?
-    <b data-bind="text: $component.selection"></b>
+    <div class="form-group">
+        <label for="hyperlink"> 
+            What does it point to?
+        </label>
+        <b id="hyperlink" data-bind="text: $component.selection"></b>
+    </div>
 
     <div class="form-group">
         <label for="targetValue" class="form-label">
             How does it open?
-            <button class="btn btn-info" type="button" title="Help"
-                data-bind="tooltipToggle: 'Specifies how to open the link.'"></button>
         </label>
         <label class="form-label">
             <input type="radio" name="target" value="_self" data-bind="checked: target" /> Same window

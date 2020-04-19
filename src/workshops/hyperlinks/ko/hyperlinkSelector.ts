@@ -51,10 +51,13 @@ export class HyperlinkSelector {
     }
 
     public onHyperlinkSelected(hyperlink: HyperlinkModel): void {
-        console.log(hyperlink);
-
         this.hyperlink(hyperlink);
-        hyperlink.target = this.target();
+
+        if (hyperlink) {
+            hyperlink.target = this.target();
+            const hyperlinkProvider = this.hyperlinkProviders.find(x => x.canHandleHyperlink(hyperlink.targetKey));
+            this.hyperlinkProvider(hyperlinkProvider);
+        }
 
         if (this.onChange) {
             this.onChange(hyperlink);

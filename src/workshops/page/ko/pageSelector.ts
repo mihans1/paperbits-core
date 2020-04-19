@@ -2,7 +2,7 @@ import * as ko from "knockout";
 import template from "./pageSelector.html";
 import { IResourceSelector } from "@paperbits/common/ui";
 import { PageItem, AnchorItem } from "./pageItem";
-import { IPageService } from "@paperbits/common/pages";
+import { IPageService, PageContract } from "@paperbits/common/pages";
 import { Component, Param, Event, OnMounted } from "@paperbits/common/ko/decorators";
 import { HyperlinkModel } from "@paperbits/common/permalinks";
 import { AnchorUtils } from "../../../text/anchorUtils";
@@ -23,7 +23,10 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
     public selectedPage: ko.Observable<PageItem>;
 
     @Event()
-    public onSelect: (selection: HyperlinkModel) => void;
+    public onSelect: (selection: PageContract) => void;
+
+    @Event()
+    public onHyperlinkSelect: (selection: HyperlinkModel) => void;
 
     constructor(private readonly pageService: IPageService) {
         this.pages = ko.observableArray();
@@ -87,7 +90,11 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
         await this.getAnchors(page);
 
         if (this.onSelect) {
-            this.onSelect(page.getHyperlink());
+            this.onSelect(page.toContract());
+        }
+
+        if (this.onHyperlinkSelect) {
+            this.onHyperlinkSelect(page.getHyperlink());
         }
     }
 
@@ -96,12 +103,15 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
     }
 
     public async selectAnchor(anchor: AnchorItem): Promise<void> {
-        if (this.onSelect) {
-            const selectedPage = this.selectedPage();
-            anchor.isSelected(true);
-            selectedPage.selectedAnchor = anchor;
-            this.onSelect(selectedPage.getHyperlink());
+        if (!this.onHyperlinkSelect) {
+            return;
         }
+
+        const selectedPage = this.selectedPage();
+        anchor.isSelected(true);
+        selectedPage.selectedAnchor = anchor;
+        
+        this.onHyperlinkSelect(selectedPage.getHyperlink());
     }
 
     private async getAnchors(pageItem: PageItem): Promise<void> {

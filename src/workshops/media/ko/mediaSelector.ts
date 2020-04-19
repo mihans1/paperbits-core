@@ -28,6 +28,9 @@ export class MediaSelector {
 
     @Event()
     public onSelect: (media: MediaContract) => void;
+    
+    @Event()
+    public onHyperlinkSelect: (selection: HyperlinkModel) => void;
 
     constructor(
         private readonly eventManager: EventManager,
@@ -78,8 +81,13 @@ export class MediaSelector {
 
         this.selectedMedia(media);
         media.isSelected(true);
+
         if (this.onSelect) {
             this.onSelect(media.toMedia());
+        }
+
+        if (this.onHyperlinkSelect) {
+            this.onHyperlinkSelect(media.getHyperlink());
         }
     }
 

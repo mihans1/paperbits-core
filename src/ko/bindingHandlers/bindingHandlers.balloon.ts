@@ -211,7 +211,7 @@ export class BalloonBindingHandler {
                     balloonElement.style.top = `${balloonTop}px`;
                     balloonElement.style.left = `${balloonLeft}px`;
                     balloonElement.style.height = `${balloonHeight}px`;
-                    balloonElement.style.width = `${balloonWidth}px`;
+                    // balloonElement.style.width = `${balloonWidth}px`;
                 };
 
                 const open = (): void => {
