@@ -160,19 +160,18 @@ export class BalloonBindingHandler {
                     balloonElement.classList.remove("balloon-left");
                     balloonElement.classList.remove("balloon-right");
 
-
                     if (preferredDirection === "vertical") {
                         switch (positionY) {
                             case "top":
                                 balloonElement.classList.add("balloon-top");
-                                balloonTop = triggerRect.top - balloonHeight;
+                                balloonTop = triggerRect.top - balloonHeight - 5;
                                 balloonLeft = triggerRect.left + (triggerRect.width / 2) - (balloonWidth / 2);
 
                                 break;
 
                             case "bottom":
                                 balloonElement.classList.add("balloon-bottom");
-                                balloonTop = triggerRect.top + triggerRect.height;
+                                balloonTop = triggerRect.top + triggerRect.height + 5;
                                 balloonLeft = triggerRect.left + (triggerRect.width / 2) - (balloonWidth / 2);
                                 break;
                         }
@@ -213,7 +212,7 @@ export class BalloonBindingHandler {
                     balloonElement.style.bottom = `${balloonBottom}px`;
                 };
 
-                const open = (): void => {
+                const open = (returnFocusTo: HTMLElement): void => {
                     resetCloseTimeout();
 
                     if (balloonIsOpen) {
@@ -225,7 +224,7 @@ export class BalloonBindingHandler {
                     view = {
                         close: close,
                         element: balloonElement,
-                        returnFocusTo: toggleElement,
+                        returnFocusTo: returnFocusTo,
                         hitTest: (targetElement) => {
                             const element = closest(targetElement, x => x === balloonElement) || closest(targetElement, x => x === toggleElement);
                             return !!element;
@@ -278,7 +277,7 @@ export class BalloonBindingHandler {
                         }
                     }
                     else {
-                        open();
+                        open(toggleElement);
                     }
                 };
 
