@@ -87,7 +87,11 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
         this.selectedPage(page);
         page.isSelected(true);
 
-        await this.getAnchors(page);
+        if (page.anchors().length === 0) {
+            const anchors = await this.getAnchors(page);
+            page.anchors(anchors);
+            return;
+        }
 
         if (this.onSelect) {
             this.onSelect(page.toContract());
@@ -110,14 +114,13 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
         const selectedPage = this.selectedPage();
         anchor.isSelected(true);
         selectedPage.selectedAnchor = anchor;
-        
+
         this.onHyperlinkSelect(selectedPage.getHyperlink());
     }
 
-    private async getAnchors(pageItem: PageItem): Promise<void> {
+    private async getAnchors(pageItem: PageItem): Promise<AnchorItem[]> {
         const pageContent = await this.pageService.getPageContent(pageItem.key);
         const children = AnchorUtils.getHeadingNodes(pageContent, 1, 6);
-        let selectedAnchor: AnchorItem;
 
         const anchors = children
             .filter(item => item.nodes?.length > 0)
@@ -126,17 +129,9 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
                 anchor.shortTitle = item.nodes[0].text;
                 anchor.elementId = item.attrs.id;
 
-                if (pageItem.selectedAnchor && pageItem.selectedAnchor.elementId === anchor.elementId) {
-                    selectedAnchor = anchor;
-                }
-
                 return anchor;
             });
 
-        pageItem.anchors(anchors);
-
-        if (selectedAnchor) {
-            this.selectAnchor(selectedAnchor);
-        }
+        return anchors;
     }
 }
