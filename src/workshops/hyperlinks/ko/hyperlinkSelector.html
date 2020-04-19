@@ -27,14 +27,16 @@
     <!--ko if: hyperlink -->
     <div class="form-group">
         <label for="hyperlink"> 
-            What does it point to?
+            Link points to:
         </label>
-        <b id="hyperlink" data-bind="text: $component.selection"></b>
+        <div class="max-w300 text-overflow">
+            <b id="hyperlink" data-bind="text: $component.selection, attr: { title: selection }"></b>
+        </div>
     </div>
 
     <div class="form-group">
         <label for="targetValue" class="form-label">
-            How does it open?
+            Link opens in:
         </label>
         <label class="form-label">
             <input type="radio" name="target" value="_self" data-bind="checked: target" /> Same window
@@ -48,8 +50,7 @@
     <!-- ko ifnot: hyperlink -->
     <div class="flex flex-column">
         <div class="flex flex-column flex-item-grow tab-panel" role="tabpanel">
-            <h3>No link</h3>
-            <p>Choose from the list of options to add a link to your element.</p>
+            <label>No link selected.</label>
         </div>
     </div>
     <!--/ko-->

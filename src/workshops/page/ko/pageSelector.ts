@@ -31,7 +31,7 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
     constructor(private readonly pageService: IPageService) {
         this.pages = ko.observableArray();
         this.selectedPage = ko.observable();
-        this.searchPattern = ko.observable();
+        this.searchPattern = ko.observable("");
         this.working = ko.observable();
     }
 
