@@ -28,7 +28,7 @@ export class MediaSelector {
 
     @Event()
     public onSelect: (media: MediaContract) => void;
-    
+
     @Event()
     public onHyperlinkSelect: (selection: HyperlinkModel) => void;
 
@@ -64,7 +64,7 @@ export class MediaSelector {
         if (!this.selectedMedia() && this.preSelectedModel) {
             const currentPermalink = this.preSelectedModel.href;
             const current = mediaItems.find(item => item.permalink() === currentPermalink);
-            
+
             if (current) {
                 this.selectMedia(current);
             }
@@ -121,8 +121,12 @@ export class MediaSelector {
             uploadPromises.push(uploadPromise);
         }
 
-        await Promise.all(uploadPromises);
+        const results = await Promise.all<MediaContract>(uploadPromises);
         await this.searchMedia();
+
+        const mediaItem = new MediaItem(results[0]);
+        this.selectMedia(mediaItem);
+
         this.working(false);
     }
 
