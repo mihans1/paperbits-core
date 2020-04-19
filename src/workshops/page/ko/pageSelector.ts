@@ -87,10 +87,14 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
         this.selectedPage(page);
         page.isSelected(true);
 
-        if (page.anchors().length === 0) {
+        if (!page.anchorsLoaded()) { // expand anchors on first click
             const anchors = await this.getAnchors(page);
             page.anchors(anchors);
-            return;
+            page.anchorsLoaded(true);
+
+            if (anchors.length > 0) {
+                return;
+            }
         }
 
         if (this.onSelect) {
@@ -126,7 +130,7 @@ export class PageSelector implements IResourceSelector<HyperlinkModel> {
             .filter(item => item.nodes?.length > 0)
             .map(item => {
                 const anchor = new AnchorItem();
-                anchor.shortTitle = item.nodes[0].text;
+                anchor.shortTitle = item.nodes[0]?.text;
                 anchor.elementId = item.attrs.id;
 
                 return anchor;

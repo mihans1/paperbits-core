@@ -260,6 +260,8 @@ export class BalloonBindingHandler {
                         ko.cleanNode(balloonElement);
                         balloonElement.remove();
                         balloonElement = null;
+
+                        viewStack.removeView(view);
                     }
 
                     if (options.isOpen && options.isOpen()) {
