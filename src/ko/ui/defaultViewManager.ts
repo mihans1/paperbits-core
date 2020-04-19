@@ -291,6 +291,7 @@ export class DefaultViewManager implements ViewManager {
         };
 
         view.close = () => this.closeView();
+        view.component.params.onClose = () => this.closeView();
 
         this.clearContextualEditors();
         this.closeView();
