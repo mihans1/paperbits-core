@@ -1,6 +1,7 @@
 ﻿import * as _ from "lodash";
 import * as ko from "knockout";
 import * as Arrays from "@paperbits/common/arrays";
+import * as Utils from "@paperbits/common/utils";
 import template from "./defaultViewManager.html";
 import "@paperbits/common/extensions";
 import { Bag } from "@paperbits/common";
@@ -95,7 +96,7 @@ export class DefaultViewManager implements ViewManager {
         this.router.addRouteChangeListener(this.onRouteChange.bind(this));
         this.globalEventHandler.appendDocument(document);
 
-        this.eventManager.addEventListener("onEscape", this.closeEditors.bind(this));
+        this.eventManager.addEventListener("onEscape", this.onEscape.bind(this));
         this.eventManager.addEventListener("onKeyDown", this.onKeyDown.bind(this));
         this.eventManager.addEventListener("onKeyUp", this.onKeyUp.bind(this));
     }
@@ -283,12 +284,13 @@ export class DefaultViewManager implements ViewManager {
             return;
         }
 
-        // view.component.oncreate = (vm, el) => {
-        //     console.log(el);
-        //     view.element = el;
-        // };
-        view.component.params.onClose = () => this.closeView(); // TODO: Should be subscription rather than assignment
+        view.hitTest = (el) => { // TODO: Move to bindingHandler
+            return !!Utils.closest(el, (x: HTMLElement) =>
+                (x.getAttribute && !!x.getAttribute("contentEditable")) || // TODO: Move hitTest check to text editor
+                (x?.classList && Arrays.coerce(x.classList).includes("toolbox")));
+        };
 
+        view.close = () => this.closeView();
 
         this.clearContextualEditors();
         this.closeView();
@@ -297,29 +299,26 @@ export class DefaultViewManager implements ViewManager {
 
         this.designTime(false); // Review: It's here for text editor
 
-      
-        // view.close = this.closeView;
-        // this.viewStack.pushView(view);
+        this.viewStack.pushView(view);
     }
 
     public getOpenView(): View {
         return this.widgetEditor();
     }
 
+    public onEscape(): void {
+        // TODO
+    }
+
     public closeEditors(): void {
         const host = this.host();
 
         if (!this.getOpenView() && this.journey().length === 0 && host && host.name !== "page-host") {
-            this.setHost({ name: "page-host" });
+            this.setHost({ name: "page-host" }); // TODO: Get host type by current route.
         }
 
-        // const topView = this.viewStack.pop();
-
-        // if (topView) {
-        //     topView.close();
-        // }
-        // this.closeView();
-        // this.clearJourney();
+        this.closeView();
+        this.clearJourney();
     }
 
     public openWidgetEditor(binding: IWidgetBinding<any>): void {

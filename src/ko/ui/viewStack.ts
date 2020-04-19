@@ -1,5 +1,6 @@
 import { EventManager } from "@paperbits/common/events";
 import { View } from "@paperbits/common/ui";
+import * as Utils from "@paperbits/common/utils";
 
 export class ViewStack {
     private stack: View[];
@@ -10,19 +11,9 @@ export class ViewStack {
         this.eventManager.addEventListener("onEscape", this.onEscape.bind(this));
     }
 
-    private closest(node: Node, predicate: (node: Node) => boolean): Node {
-        do {
-            if (predicate(node)) {
-                return node;
-            }
-        }
-        while (node = node && node.parentNode);
-    }
-
     private onPointerDown(event: MouseEvent): void {
         const tagetElement = <HTMLElement>event.target;
         const views = [...this.stack]; // clone array
-        let nextActiveElement: HTMLElement;
 
         for (const view of views.reverse()) {
             let hit: boolean;
@@ -31,7 +22,7 @@ export class ViewStack {
                 hit = view.hitTest(tagetElement);
             }
             else {
-                hit = !!this.closest(tagetElement, (node: HTMLElement) => node === view.element);
+                hit = !!Utils.closest(tagetElement, (node: HTMLElement) => node === view.element);
             }
 
             if (hit) {
@@ -65,5 +56,9 @@ export class ViewStack {
         if (view.returnFocusTo) {
             view.returnFocusTo.focus();
         }
+    }
+
+    public getViews(): View[] {
+        return [...this.stack]; // clone array
     }
 }
