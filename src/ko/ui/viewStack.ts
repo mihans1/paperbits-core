@@ -1,5 +1,5 @@
 import { EventManager } from "@paperbits/common/events";
-import { View } from "@paperbits/common/ui";
+import { View, ViewManager } from "@paperbits/common/ui";
 import * as Utils from "@paperbits/common/utils";
 
 export class ViewStack {
@@ -43,6 +43,13 @@ export class ViewStack {
             if (topView.returnFocusTo) {
                 topView.returnFocusTo.focus();
             }
+        }
+        else {
+            this.eventManager.dispatchEvent("onTopLevelEscape");
+
+            // if (!this.getOpenView() && this.journey().length === 0 && host && host.name !== "page-host") {
+            //     this.setHost({ name: "page-host" }); // TODO: Get host type by current route.
+            // }
         }
     }
 

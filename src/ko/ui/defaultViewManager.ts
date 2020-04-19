@@ -96,7 +96,7 @@ export class DefaultViewManager implements ViewManager {
         this.router.addRouteChangeListener(this.onRouteChange.bind(this));
         this.globalEventHandler.appendDocument(document);
 
-        this.eventManager.addEventListener("onEscape", this.onEscape.bind(this));
+        this.eventManager.addEventListener("onTopLevelEscape", this.onEscape.bind(this));
         this.eventManager.addEventListener("onKeyDown", this.onKeyDown.bind(this));
         this.eventManager.addEventListener("onKeyUp", this.onKeyUp.bind(this));
     }
@@ -307,16 +307,14 @@ export class DefaultViewManager implements ViewManager {
     }
 
     public onEscape(): void {
-        // TODO
-    }
-
-    public closeEditors(): void {
         const host = this.host();
 
         if (!this.getOpenView() && this.journey().length === 0 && host && host.name !== "page-host") {
             this.setHost({ name: "page-host" }); // TODO: Get host type by current route.
         }
+    }
 
+    public closeEditors(): void {
         this.closeView();
         this.clearJourney();
     }
