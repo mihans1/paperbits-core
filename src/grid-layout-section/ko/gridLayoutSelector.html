@@ -27,6 +27,13 @@
             </a>
         </div>
         <!-- /ko -->
+        <div class="tab"
+            data-bind="css: { 'tab-is-active': selected() === 'blocks' }, attr: { 'aria-selected': selected() === 'blocks' }">
+            <a href="#" data-bind="click: selected.bind($data,'blocks')" title="Blocks" role="tab"
+                aria-label="add from blocks">
+                Blocks
+            </a>
+        </div>
     </div>
     <!-- ko if: !selected() -->
 
